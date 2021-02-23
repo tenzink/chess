@@ -1,9 +1,9 @@
 #[cfg(test)]
 mod tests {
     use super::board::*;
-    use crate::field::field::*;
-    use crate::piece::piece::Piece;
-    use crate::side::side::Side;
+    use crate::field::*;
+    use crate::piece::Piece;
+    use crate::side::Side;
 
     #[test]
     fn new() {
@@ -67,9 +67,9 @@ mod tests {
 
 pub mod board {
 
-    use crate::field::field::*;
-    use crate::piece::piece::Piece;
-    use crate::side::side::Side;
+    use crate::field::*;
+    use crate::piece::Piece;
+    use crate::side::Side;
 
     pub struct Board {
         sides: [Side; COUNT],
