@@ -64,6 +64,27 @@ mod tests {
             assert_eq!(is_empty_piece, is_empty_side);
         }
     }
+
+    #[test]
+    fn from() {
+        let b = Board::from(&[(A1, Side::White, Piece::Rook)]);
+        assert_eq!(b.side(A1), Side::White);
+        assert_eq!(b.piece(A1), Piece::Rook);
+        assert_eq!(b.side(A2), Side::Empty);
+        assert_eq!(b.piece(A2), Piece::Empty);
+    }
+
+    #[test]
+    fn from2() {
+        let b = Board::from(&[
+            (H7, Side::White, Piece::Pawn),
+            (H8, Side::Black, Piece::King),
+        ]);
+        assert_eq!(b.side(H7), Side::White);
+        assert_eq!(b.piece(H7), Piece::Pawn);
+        assert_eq!(b.side(H8), Side::Black);
+        assert_eq!(b.piece(H8), Piece::King);
+    }
 }
 
 pub struct Board {
@@ -105,6 +126,15 @@ impl Board {
         ];
         pieces[..A2].copy_from_slice(&INITIAL);
         pieces[A8..].copy_from_slice(&INITIAL);
+        Board { sides, pieces }
+    }
+    pub fn from(list: &[(usize, Side, Piece)]) -> Board {
+        let mut sides = [Side::Empty; COUNT];
+        let mut pieces = [Piece::Empty; COUNT];
+        for (idx, side, piece) in list {
+            sides[*idx] = *side;
+            pieces[*idx] = *piece;
+        }
         Board { sides, pieces }
     }
 }
