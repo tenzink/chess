@@ -3,6 +3,7 @@
 
 mod board;
 mod field;
+mod moves;
 mod piece;
 mod side;
 
