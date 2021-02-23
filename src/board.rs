@@ -1,9 +1,10 @@
+use crate::field::*;
+use crate::piece::Piece;
+use crate::side::Side;
+
 #[cfg(test)]
 mod tests {
-    use super::board::*;
-    use crate::field::*;
-    use crate::piece::Piece;
-    use crate::side::Side;
+    use super::*;
 
     #[test]
     fn new() {
@@ -65,52 +66,45 @@ mod tests {
     }
 }
 
-pub mod board {
+pub struct Board {
+    sides: [Side; COUNT],
+    pieces: [Piece; COUNT],
+}
 
-    use crate::field::*;
-    use crate::piece::Piece;
-    use crate::side::Side;
-
-    pub struct Board {
-        sides: [Side; COUNT],
-        pieces: [Piece; COUNT],
+impl Board {
+    pub fn side(&self, idx: usize) -> Side {
+        self.sides[idx]
     }
 
-    impl Board {
-        pub fn side(&self, idx: usize) -> Side {
-            self.sides[idx]
-        }
+    pub fn piece(&self, idx: usize) -> Piece {
+        self.pieces[idx]
+    }
 
-        pub fn piece(&self, idx: usize) -> Piece {
-            self.pieces[idx]
+    pub fn new() -> Board {
+        Board {
+            sides: [Side::Empty; COUNT],
+            pieces: [Piece::Empty; COUNT],
         }
-
-        pub fn new() -> Board {
-            Board {
-                sides: [Side::Empty; COUNT],
-                pieces: [Piece::Empty; COUNT],
-            }
-        }
-        pub fn initial() -> Board {
-            let mut sides = [Side::Empty; COUNT];
-            sides[..A3].fill(Side::White);
-            sides[A7..].fill(Side::Black);
-            let mut pieces = [Piece::Empty; COUNT];
-            pieces[A2..A3].fill(Piece::Pawn);
-            pieces[A7..A8].fill(Piece::Pawn);
-            const INITIAL: [Piece; 8] = [
-                Piece::Rook,
-                Piece::Knight,
-                Piece::Bishop,
-                Piece::Queen,
-                Piece::King,
-                Piece::Bishop,
-                Piece::Knight,
-                Piece::Rook,
-            ];
-            pieces[..A2].copy_from_slice(&INITIAL);
-            pieces[A8..].copy_from_slice(&INITIAL);
-            Board { sides, pieces }
-        }
+    }
+    pub fn initial() -> Board {
+        let mut sides = [Side::Empty; COUNT];
+        sides[..A3].fill(Side::White);
+        sides[A7..].fill(Side::Black);
+        let mut pieces = [Piece::Empty; COUNT];
+        pieces[A2..A3].fill(Piece::Pawn);
+        pieces[A7..A8].fill(Piece::Pawn);
+        const INITIAL: [Piece; 8] = [
+            Piece::Rook,
+            Piece::Knight,
+            Piece::Bishop,
+            Piece::Queen,
+            Piece::King,
+            Piece::Bishop,
+            Piece::Knight,
+            Piece::Rook,
+        ];
+        pieces[..A2].copy_from_slice(&INITIAL);
+        pieces[A8..].copy_from_slice(&INITIAL);
+        Board { sides, pieces }
     }
 }
