@@ -38,7 +38,7 @@ mod tests {
     use std::collections::HashSet;
 
     #[test]
-    fn test_moves_on_empty_board() {
+    fn empty() {
         let b = Board::new();
         let mv = moves(&Side::White, &b);
         assert_eq!(mv.len(), 0);
@@ -61,7 +61,7 @@ mod tests {
     }
 
     #[test]
-    fn test_king_moves() {
+    fn king() {
         test_moves(
             Side::White,
             &[(A1, Side::White, Piece::King)],
@@ -74,7 +74,7 @@ mod tests {
     }
 
     #[test]
-    fn test_king_moves2() {
+    fn king2() {
         test_moves(
             Side::White,
             &[

@@ -93,7 +93,7 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_moves_on_empty_board() {
+    fn algebraic_notation() {
         assert_eq!(algebraic(A1), "a1");
         assert_eq!(algebraic(E6), "e6");
         assert_eq!(algebraic(C4), "c4");
