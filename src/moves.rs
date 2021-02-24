@@ -88,6 +88,26 @@ mod tests {
             ],
         );
     }
+
+    #[test]
+    fn king3() {
+        test_moves(
+            Side::White,
+            &[
+                (E4, Side::White, Piece::King),
+            ],
+            &[
+                Move::Move(MoveData { from: E4, to: E5 }),
+                Move::Move(MoveData { from: E4, to: E3 }),
+                Move::Move(MoveData { from: E4, to: F3 }),
+                Move::Move(MoveData { from: E4, to: F4 }),
+                Move::Move(MoveData { from: E4, to: F5 }),
+                Move::Move(MoveData { from: E4, to: D3 }),
+                Move::Move(MoveData { from: E4, to: D4 }),
+                Move::Move(MoveData { from: E4, to: D5 }),
+            ],
+        );
+    }
 }
 
 const MX: usize = usize::MAX;
