@@ -2,6 +2,7 @@ use crate::board::Board;
 use crate::field::*;
 use crate::piece::Piece;
 use crate::side::Side;
+use std::fmt;
 
 #[derive(Debug, Eq, PartialEq, PartialOrd, Ord, Clone, Copy, Hash)]
 pub enum Move {
@@ -9,10 +10,25 @@ pub enum Move {
     Move(MoveData),
 }
 
+impl fmt::Display for Move {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Move::Capture(m) => write!(f, "{}x", m),
+            Move::Move(m) => write!(f, "{}", m),
+        }
+    }
+}
+
 #[derive(Debug, Eq, PartialEq, PartialOrd, Ord, Clone, Copy, Hash)]
 pub struct MoveData {
     from: usize,
     to: usize,
+}
+
+impl fmt::Display for MoveData {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "{}{}", algebraic(self.from), algebraic(self.to))
+    }
 }
 
 #[cfg(test)]
@@ -33,13 +49,15 @@ mod tests {
         let moves = moves(&side, &b);
         let moves: HashSet<_> = moves.iter().cloned().collect();
         let expected: HashSet<_> = expected.iter().cloned().collect();
-        let redundant = moves.difference(&expected);
-        let not_found = expected.difference(&moves);
-        assert_eq!(
-            moves, expected,
-            "\nRedundant moves: {:?}\nNot found: {:?}",
-            &redundant, &not_found
-        );
+        let redundant: Vec<_> = moves.difference(&expected).collect();
+        let not_found: Vec<_> = expected.difference(&moves).collect();
+        for m in &redundant {
+            println!("Redundant: {}", m);
+        }
+        for m in &not_found {
+            println!("Not found: {}", m);
+        }
+        assert_eq!(moves, expected);
     }
 
     #[test]
