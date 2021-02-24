@@ -121,6 +121,38 @@ mod tests {
             ],
         );
     }
+
+    #[test]
+    fn queen() {
+        test_moves(
+            Side::White,
+            &[(A1, Side::White, Piece::Queen)],
+            &[
+                Move::Move(MoveData { from: A1, to: A2 }),
+                Move::Move(MoveData { from: A1, to: A3 }),
+                Move::Move(MoveData { from: A1, to: A4 }),
+                Move::Move(MoveData { from: A1, to: A5 }),
+                Move::Move(MoveData { from: A1, to: A6 }),
+                Move::Move(MoveData { from: A1, to: A7 }),
+                Move::Move(MoveData { from: A1, to: A8 }),
+                Move::Move(MoveData { from: A1, to: B1 }),
+                Move::Move(MoveData { from: A1, to: C1 }),
+                Move::Move(MoveData { from: A1, to: D1 }),
+                Move::Move(MoveData { from: A1, to: E1 }),
+                Move::Move(MoveData { from: A1, to: F1 }),
+                Move::Move(MoveData { from: A1, to: G1 }),
+                Move::Move(MoveData { from: A1, to: H1 }),
+                Move::Move(MoveData { from: A1, to: B2 }),
+                Move::Move(MoveData { from: A1, to: C3 }),
+                Move::Move(MoveData { from: A1, to: D4 }),
+                Move::Move(MoveData { from: A1, to: E5 }),
+                Move::Move(MoveData { from: A1, to: F6 }),
+                Move::Move(MoveData { from: A1, to: G7 }),
+                Move::Move(MoveData { from: A1, to: H8 }),
+            ],
+        );
+    }
+
 }
 
 const MX: usize = usize::MAX;
@@ -160,8 +192,9 @@ fn moves_iml(
     rv: &mut Vec<Move>,
 ) {
     for off in offsets {
+        let mut n = idx;
         loop {
-            let n = MAILBOX_INDICES[(MAILBOX120_INDICES[idx] + off) as usize];
+            n = MAILBOX_INDICES[(MAILBOX120_INDICES[n] + off) as usize];
             if n == MX {
                 break;
             }
@@ -196,7 +229,14 @@ pub fn moves(side: &Side, b: &Board) -> Vec<Move> {
                 false,
                 &mut rv,
             ),
-            Piece::Queen => continue,
+            Piece::Queen => moves_iml(
+                idx,
+                side,
+                b,
+                &[-11, -10, -9, -1, 1, 9, 10, 11],
+                true,
+                &mut rv,
+            ),
             Piece::Rook => continue,
             Piece::Bishop => continue,
             Piece::Knight => continue,
