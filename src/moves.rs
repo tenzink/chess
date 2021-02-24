@@ -38,6 +38,19 @@ mod tests {
     use std::collections::HashSet;
 
     #[test]
+    fn mailboxes() {
+        for (idx, &i) in MAILBOX_INDICES.iter().enumerate() {
+            if i == MX {
+                continue;
+            }
+            assert_eq!(MAILBOX120_INDICES[i] as usize, idx);
+        }
+        for (idx, &i) in MAILBOX120_INDICES.iter().enumerate() {
+            assert_eq!(MAILBOX_INDICES[i as usize], idx);
+        }
+    }
+
+    #[test]
     fn empty() {
         let b = Board::new();
         let mv = moves(&Side::White, &b);
@@ -148,7 +161,7 @@ fn moves_iml(
 ) {
     for off in offsets {
         loop {
-            let mut n = MAILBOX_INDICES[(MAILBOX120_INDICES[idx] + off) as usize];
+            let n = MAILBOX_INDICES[(MAILBOX120_INDICES[idx] + off) as usize];
             if n == MX {
                 break;
             }
