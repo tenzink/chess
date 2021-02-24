@@ -3,13 +3,13 @@ use crate::field::*;
 use crate::piece::Piece;
 use crate::side::Side;
 
-#[derive(Debug, Eq, PartialEq, PartialOrd, Ord)]
+#[derive(Debug, Eq, PartialEq, PartialOrd, Ord, Clone, Copy, Hash)]
 pub enum Move {
     Capture(MoveData),
     Move(MoveData),
 }
 
-#[derive(Debug, Eq, PartialEq, PartialOrd, Ord)]
+#[derive(Debug, Eq, PartialEq, PartialOrd, Ord, Clone, Copy, Hash)]
 pub struct MoveData {
     from: usize,
     to: usize,
@@ -19,6 +19,7 @@ pub struct MoveData {
 mod tests {
     use super::*;
     use crate::board::Board;
+    use std::collections::HashSet;
 
     #[test]
     fn test_moves_on_empty_board() {
@@ -27,35 +28,47 @@ mod tests {
         assert_eq!(mv.len(), 0);
     }
 
+    fn test_moves(side: Side, pieces: &[(usize, Side, Piece)], expected: &[Move]) {
+        let b = Board::from(pieces);
+        let moves = moves(&side, &b);
+        let moves: HashSet<_> = moves.iter().cloned().collect();
+        let expected: HashSet<_> = expected.iter().cloned().collect();
+        let redundant = moves.difference(&expected);
+        let not_found = expected.difference(&moves);
+        assert_eq!(
+            moves, expected,
+            "\nRedundant moves: {:?}\nNot found: {:?}",
+            &redundant, &not_found
+        );
+    }
+
     #[test]
     fn test_king_moves() {
-        let b = Board::from(&[(A1, Side::White, Piece::King)]);
-        let mut mv = moves(&Side::White, &b);
-        let mut moves = vec![
-            Move::Move(MoveData { from: A1, to: A2 }),
-            Move::Move(MoveData { from: A1, to: B1 }),
-            Move::Move(MoveData { from: A1, to: B2 }),
-        ];
-        mv.sort();
-        moves.sort();
-        assert_eq!(mv, moves);
+        test_moves(
+            Side::White,
+            &[(A1, Side::White, Piece::King)],
+            &[
+                Move::Move(MoveData { from: A1, to: A2 }),
+                Move::Move(MoveData { from: A1, to: B1 }),
+                Move::Move(MoveData { from: A1, to: B2 }),
+            ],
+        );
     }
 
     #[test]
     fn test_king_moves2() {
-        let b = Board::from(&[
-            (A1, Side::White, Piece::King),
-            (A2, Side::White, Piece::Pawn),
-            (B2, Side::Black, Piece::Pawn),
-        ]);
-        let mut mv = moves(&Side::White, &b);
-        let mut moves = vec![
-            Move::Move(MoveData { from: A1, to: B1 }),
-            Move::Capture(MoveData { from: A1, to: B2 }),
-        ];
-        mv.sort();
-        moves.sort();
-        assert_eq!(mv, moves);
+        test_moves(
+            Side::White,
+            &[
+                (A1, Side::White, Piece::King),
+                (A2, Side::White, Piece::Pawn),
+                (B2, Side::Black, Piece::Pawn),
+            ],
+            &[
+                Move::Move(MoveData { from: A1, to: B1 }),
+                Move::Capture(MoveData { from: A1, to: B2 }),
+            ],
+        );
     }
 }
 
