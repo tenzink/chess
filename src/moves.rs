@@ -225,9 +225,7 @@ mod tests {
         test_moves(
             Side::White,
             &["Ke4"],
-            &[
-                "e4e5", "e4e3", "e4f3", "e4f4", "e4f5", "e4d3", "e4d4", "e4d5",
-            ],
+            &["e4e5", "e4e3", "e4f3", "e4f4", "e4f5", "e4d3", "e4d4", "e4d5"]
         );
     }
 
@@ -237,9 +235,33 @@ mod tests {
             Side::White,
             &["Qa1"],
             &[
-                "a1a2", "a1a3", "a1a4", "a1a5", "a1a6", "a1a7", "a1a8", "a1b1", "a1c1", "a1d1",
-                "a1e1", "a1f1", "a1g1", "a1h1", "a1b2", "a1c3", "a1d4", "a1e5", "a1f6", "a1g7",
-                "a1h8",
+                "a1a2", "a1a3", "a1a4", "a1a5", "a1a6", "a1a7", "a1a8",
+                "a1b1", "a1c1", "a1d1", "a1e1", "a1f1", "a1g1", "a1h1",
+                "a1b2", "a1c3", "a1d4", "a1e5", "a1f6", "a1g7", "a1h8",
+            ],
+        );
+    }
+
+    #[test]
+    fn rook() {
+        test_moves(
+            Side::White,
+            &["Rb2"],
+            &[
+                "b2a2", "b2c2", "b2d2", "b2e2", "b2f2", "b2g2", "b2h2",
+                "b2b1", "b2b3", "b2b4", "b2b5", "b2b6", "b2b7", "b2b8"
+            ],
+        );
+    }
+
+    #[test]
+    fn bishop() {
+        test_moves(
+            Side::White,
+            &["Bc2"],
+            &[
+                "c2b1", "c2d3", "c2e4", "c2f5", "c2g6", "c2h7",
+                "c2b3", "c2a4", "c2d1"
             ],
         );
     }
@@ -327,8 +349,22 @@ pub fn moves(side: &Side, b: &Board) -> Vec<Move> {
                 true,
                 &mut rv,
             ),
-            Piece::Rook => continue,
-            Piece::Bishop => continue,
+            Piece::Rook => moves_iml(
+                idx,
+                side,
+                b,
+                &[-10, -1, 1, 10],
+                true,
+                &mut rv,
+            ),
+            Piece::Bishop => moves_iml(
+                idx,
+                side,
+                b,
+                &[-11, -9, 9, 11],
+                true,
+                &mut rv,
+            ),
             Piece::Knight => continue,
             Piece::Pawn => continue,
         }
