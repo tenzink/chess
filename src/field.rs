@@ -1,3 +1,5 @@
+use std::option::Option;
+
 pub const A1: usize = 0;
 pub const B1: usize = 1;
 pub const C1: usize = 2;
@@ -88,6 +90,10 @@ pub fn algebraic(idx: usize) -> &'static str {
     NAMES[idx]
 }
 
+pub fn from_algebraic(s: &str) -> Option<usize> {
+    NAMES.iter().position(|&x| x == s)
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -98,5 +104,14 @@ mod tests {
         assert_eq!(algebraic(E6), "e6");
         assert_eq!(algebraic(C4), "c4");
         assert_eq!(algebraic(F3), "f3");
+    }
+
+    fn from_algebraic_notation() {
+        assert_eq!(from_algebraic("a1"), Some(A1));
+        assert_eq!(from_algebraic("e7"), Some(E7));
+        assert_eq!(from_algebraic("c3"), Some(C3));
+        assert_eq!(from_algebraic("b9"), None);
+        assert_eq!(from_algebraic(""), None);
+        assert_eq!(from_algebraic("a1x"), None);
     }
 }
