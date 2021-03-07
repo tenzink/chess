@@ -37,13 +37,11 @@ impl FromStr for Move {
         } else if len == 5 && s.ends_with("x") {
             let s = s.get(..4);
             match s {
-                Some(x) => {
-                    match x.parse::<MoveData>() {
-                        Ok(m) => Ok(Move::Capture(m)),
-                        _ => Err(())
-                    }
+                Some(x) => match x.parse::<MoveData>() {
+                    Ok(m) => Ok(Move::Capture(m)),
+                    _ => Err(()),
                 },
-                _ => Err(())
+                _ => Err(()),
             }
         } else {
             Err(())
@@ -112,7 +110,7 @@ mod tests {
             Ok(Move::Move(MoveData { from: A1, to: B2 })),
             "a1b2".parse::<Move>()
         );
-                assert_eq!(
+        assert_eq!(
             Ok(Move::Capture(MoveData { from: D1, to: H7 })),
             "d1h7x".parse::<Move>()
         );
@@ -160,11 +158,16 @@ mod tests {
         assert_eq!(mv.len(), 0);
     }
 
-    fn test_moves(side: Side, pieces: &[(usize, Side, Piece)], expected: &[Move]) {
+    fn test_moves(side: Side, pieces: &[(usize, Side, Piece)], expected: &[&str]) {
+        let mut expected_moves = HashSet::<Move>::new();
+        for mv in expected {
+            let mv: Move = mv.parse::<Move>().unwrap();
+            expected_moves.insert(mv);
+        }
         let b = Board::from(pieces);
         let moves = moves(&side, &b);
         let moves: HashSet<_> = moves.iter().cloned().collect();
-        let expected: HashSet<_> = expected.iter().cloned().collect();
+        let expected = expected_moves;
         let redundant: Vec<_> = moves.difference(&expected).collect();
         let not_found: Vec<_> = expected.difference(&moves).collect();
         for m in &redundant {
@@ -181,11 +184,7 @@ mod tests {
         test_moves(
             Side::White,
             &[(A1, Side::White, Piece::King)],
-            &[
-                Move::Move(MoveData { from: A1, to: A2 }),
-                Move::Move(MoveData { from: A1, to: B1 }),
-                Move::Move(MoveData { from: A1, to: B2 }),
-            ],
+            &["a1a2", "a1b1", "a1b2"],
         );
     }
 
@@ -198,10 +197,7 @@ mod tests {
                 (A2, Side::White, Piece::Pawn),
                 (B2, Side::Black, Piece::Pawn),
             ],
-            &[
-                Move::Move(MoveData { from: A1, to: B1 }),
-                Move::Capture(MoveData { from: A1, to: B2 }),
-            ],
+            &["a1b1", "a1b2x"],
         );
     }
 
@@ -211,14 +207,7 @@ mod tests {
             Side::White,
             &[(E4, Side::White, Piece::King)],
             &[
-                Move::Move(MoveData { from: E4, to: E5 }),
-                Move::Move(MoveData { from: E4, to: E3 }),
-                Move::Move(MoveData { from: E4, to: F3 }),
-                Move::Move(MoveData { from: E4, to: F4 }),
-                Move::Move(MoveData { from: E4, to: F5 }),
-                Move::Move(MoveData { from: E4, to: D3 }),
-                Move::Move(MoveData { from: E4, to: D4 }),
-                Move::Move(MoveData { from: E4, to: D5 }),
+                "e4e5", "e4e3", "e4f3", "e4f4", "e4f5", "e4d3", "e4d4", "e4d5",
             ],
         );
     }
@@ -229,27 +218,9 @@ mod tests {
             Side::White,
             &[(A1, Side::White, Piece::Queen)],
             &[
-                Move::Move(MoveData { from: A1, to: A2 }),
-                Move::Move(MoveData { from: A1, to: A3 }),
-                Move::Move(MoveData { from: A1, to: A4 }),
-                Move::Move(MoveData { from: A1, to: A5 }),
-                Move::Move(MoveData { from: A1, to: A6 }),
-                Move::Move(MoveData { from: A1, to: A7 }),
-                Move::Move(MoveData { from: A1, to: A8 }),
-                Move::Move(MoveData { from: A1, to: B1 }),
-                Move::Move(MoveData { from: A1, to: C1 }),
-                Move::Move(MoveData { from: A1, to: D1 }),
-                Move::Move(MoveData { from: A1, to: E1 }),
-                Move::Move(MoveData { from: A1, to: F1 }),
-                Move::Move(MoveData { from: A1, to: G1 }),
-                Move::Move(MoveData { from: A1, to: H1 }),
-                Move::Move(MoveData { from: A1, to: B2 }),
-                Move::Move(MoveData { from: A1, to: C3 }),
-                Move::Move(MoveData { from: A1, to: D4 }),
-                Move::Move(MoveData { from: A1, to: E5 }),
-                Move::Move(MoveData { from: A1, to: F6 }),
-                Move::Move(MoveData { from: A1, to: G7 }),
-                Move::Move(MoveData { from: A1, to: H8 }),
+                "a1a2", "a1a3", "a1a4", "a1a5", "a1a6", "a1a7", "a1a8", "a1b1", "a1c1", "a1d1",
+                "a1e1", "a1f1", "a1g1", "a1h1", "a1b2", "a1c3", "a1d4", "a1e5", "a1f6", "a1g7",
+                "a1h8",
             ],
         );
     }
