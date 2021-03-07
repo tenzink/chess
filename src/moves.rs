@@ -1,8 +1,10 @@
 use crate::board::Board;
 use crate::field::*;
+use crate::moves::from_algebraic;
 use crate::piece::Piece;
 use crate::side::Side;
 use std::fmt;
+use std::str::FromStr;
 
 #[derive(Debug, Eq, PartialEq, PartialOrd, Ord, Clone, Copy, Hash)]
 pub enum Move {
@@ -19,10 +21,54 @@ impl fmt::Display for Move {
     }
 }
 
+impl FromStr for Move {
+    type Err = ();
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        let len = s.len();
+        if len == 0 {
+            Err(())?
+        }
+        if len == 4 {
+            match s.parse::<MoveData>() {
+                Ok(m) => Ok(Move::Move(m)),
+                _ => Err(()),
+            }
+        } else if len == 5 && s.ends_with("x") {
+            let s = s.get(..4);
+            match s {
+                Some(x) => {
+                    match x.parse::<MoveData>() {
+                        Ok(m) => Ok(Move::Capture(m)),
+                        _ => Err(())
+                    }
+                },
+                _ => Err(())
+            }
+        } else {
+            Err(())
+        }
+    }
+}
+
 #[derive(Debug, Eq, PartialEq, PartialOrd, Ord, Clone, Copy, Hash)]
 pub struct MoveData {
     from: usize,
     to: usize,
+}
+
+impl FromStr for MoveData {
+    type Err = ();
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        if s.len() != 4 {
+            Err(())?
+        }
+        match (from_algebraic(&s[0..2]), from_algebraic(&s[2..4])) {
+            (Some(from), Some(to)) => Ok(MoveData { from, to }),
+            _ => Err(()),
+        }
+    }
 }
 
 impl fmt::Display for MoveData {
@@ -36,6 +82,63 @@ mod tests {
     use super::*;
     use crate::board::Board;
     use std::collections::HashSet;
+
+    #[test]
+    fn move_data_to_str() {
+        assert_eq!(MoveData { from: A1, to: B2 }.to_string(), "a1b2");
+        assert_eq!(MoveData { from: D1, to: H7 }.to_string(), "d1h7");
+        assert_eq!(MoveData { from: E2, to: E4 }.to_string(), "e2e4");
+    }
+
+    #[test]
+    fn move_to_str() {
+        assert_eq!(
+            Move::Move(MoveData { from: A1, to: B2 }).to_string(),
+            "a1b2"
+        );
+        assert_eq!(
+            Move::Capture(MoveData { from: D1, to: H7 }).to_string(),
+            "d1h7x"
+        );
+        assert_eq!(
+            Move::Capture(MoveData { from: E2, to: E4 }).to_string(),
+            "e2e4x"
+        );
+    }
+
+    #[test]
+    fn move_from_str() {
+        assert_eq!(
+            Ok(Move::Move(MoveData { from: A1, to: B2 })),
+            "a1b2".parse::<Move>()
+        );
+                assert_eq!(
+            Ok(Move::Capture(MoveData { from: D1, to: H7 })),
+            "d1h7x".parse::<Move>()
+        );
+        assert_eq!(
+            Ok(Move::Capture(MoveData { from: E2, to: E4 })),
+            "e2e4x".parse::<Move>()
+        );
+    }
+    #[test]
+    fn move_data_from_str() {
+        assert_eq!(
+            Ok(MoveData { from: A1, to: B2 }),
+            "a1b2".parse::<MoveData>()
+        );
+        assert_eq!(
+            Ok(MoveData { from: D1, to: H7 }),
+            "d1h7".parse::<MoveData>()
+        );
+        assert_eq!(
+            Ok(MoveData { from: E2, to: E4 }),
+            "e2e4".parse::<MoveData>()
+        );
+        assert!("e2e9".parse::<MoveData>().is_err());
+        assert!("e2e4x".parse::<MoveData>().is_err());
+        assert!("".parse::<MoveData>().is_err());
+    }
 
     #[test]
     fn mailboxes() {
@@ -106,9 +209,7 @@ mod tests {
     fn king3() {
         test_moves(
             Side::White,
-            &[
-                (E4, Side::White, Piece::King),
-            ],
+            &[(E4, Side::White, Piece::King)],
             &[
                 Move::Move(MoveData { from: E4, to: E5 }),
                 Move::Move(MoveData { from: E4, to: E3 }),
@@ -152,7 +253,6 @@ mod tests {
             ],
         );
     }
-
 }
 
 const MX: usize = usize::MAX;
