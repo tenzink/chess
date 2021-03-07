@@ -150,7 +150,6 @@ mod tests {
             assert_eq!(MAILBOX_INDICES[i as usize], idx);
         }
     }
-
     #[test]
     fn empty() {
         let b = Board::new();
@@ -158,13 +157,37 @@ mod tests {
         assert_eq!(mv.len(), 0);
     }
 
-    fn test_moves(side: Side, pieces: &[(usize, Side, Piece)], expected: &[&str]) {
+    fn piece(s: &str) -> (usize, Side, Piece) {
+        let (side, piece) = match &s[..1] {
+            "K" => (Side::White, Piece::King),
+            "k" => (Side::Black, Piece::King),
+            "Q" => (Side::White, Piece::Queen),
+            "q" => (Side::Black, Piece::Queen),
+            "R" => (Side::White, Piece::Rook),
+            "r" => (Side::Black, Piece::Rook),
+            "B" => (Side::White, Piece::Bishop),
+            "b" => (Side::Black, Piece::Bishop),
+            "N" => (Side::White, Piece::Knight),
+            "n" => (Side::Black, Piece::Knight),
+            "P" => (Side::White, Piece::Knight),
+            "p" => (Side::Black, Piece::Pawn),
+            _ => panic!("Unknown piece"),
+        };
+        let pos = from_algebraic(&s[1..]).unwrap();
+        (pos, side, piece)
+    }
+
+    fn test_moves(side: Side, pieces_str: &[&str], expected: &[&str]) {
         let mut expected_moves = HashSet::<Move>::new();
         for mv in expected {
             let mv: Move = mv.parse::<Move>().unwrap();
             expected_moves.insert(mv);
         }
-        let b = Board::from(pieces);
+        let mut pieces = Vec::new();
+        for pieces_str in pieces_str {
+            pieces.push(piece(pieces_str));
+        }
+        let b = Board::from(&pieces);
         let moves = moves(&side, &b);
         let moves: HashSet<_> = moves.iter().cloned().collect();
         let expected = expected_moves;
@@ -183,7 +206,7 @@ mod tests {
     fn king() {
         test_moves(
             Side::White,
-            &[(A1, Side::White, Piece::King)],
+            &["Ka1"],
             &["a1a2", "a1b1", "a1b2"],
         );
     }
@@ -192,11 +215,7 @@ mod tests {
     fn king2() {
         test_moves(
             Side::White,
-            &[
-                (A1, Side::White, Piece::King),
-                (A2, Side::White, Piece::Pawn),
-                (B2, Side::Black, Piece::Pawn),
-            ],
+            &["Ka1", "Pa2", "pb2"],
             &["a1b1", "a1b2x"],
         );
     }
@@ -205,7 +224,7 @@ mod tests {
     fn king3() {
         test_moves(
             Side::White,
-            &[(E4, Side::White, Piece::King)],
+            &["Ke4"],
             &[
                 "e4e5", "e4e3", "e4f3", "e4f4", "e4f5", "e4d3", "e4d4", "e4d5",
             ],
@@ -216,7 +235,7 @@ mod tests {
     fn queen() {
         test_moves(
             Side::White,
-            &[(A1, Side::White, Piece::Queen)],
+            &["Qa1"],
             &[
                 "a1a2", "a1a3", "a1a4", "a1a5", "a1a6", "a1a7", "a1a8", "a1b1", "a1c1", "a1d1",
                 "a1e1", "a1f1", "a1g1", "a1h1", "a1b2", "a1c3", "a1d4", "a1e5", "a1f6", "a1g7",
