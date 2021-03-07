@@ -169,7 +169,7 @@ mod tests {
             "b" => (Side::Black, Piece::Bishop),
             "N" => (Side::White, Piece::Knight),
             "n" => (Side::Black, Piece::Knight),
-            "P" => (Side::White, Piece::Knight),
+            "P" => (Side::White, Piece::Pawn),
             "p" => (Side::Black, Piece::Pawn),
             _ => panic!("Unknown piece"),
         };
@@ -263,6 +263,24 @@ mod tests {
                 "c2b1", "c2d3", "c2e4", "c2f5", "c2g6", "c2h7",
                 "c2b3", "c2a4", "c2d1"
             ],
+        );
+    }
+
+    #[test]
+    fn knight() {
+        test_moves(
+            Side::White,
+            &["Nh8"],
+            &["h8g6", "h8f7"],
+        );
+    }
+
+    #[test]
+    fn knight2() {
+        test_moves(
+            Side::White,
+            &["Nd4"],
+            &["d4c2", "d4e2", "d4b3", "d4f3", "d4c6", "d4e6", "d4b5", "d4f5"],
         );
     }
 }
@@ -365,7 +383,14 @@ pub fn moves(side: &Side, b: &Board) -> Vec<Move> {
                 true,
                 &mut rv,
             ),
-            Piece::Knight => continue,
+            Piece::Knight => moves_iml(
+                idx,
+                side,
+                b,
+                &[-21, -19, -12, -8, 8, 12, 19, 21],
+                false,
+                &mut rv,
+            ),
             Piece::Pawn => continue,
         }
     }
