@@ -9,7 +9,7 @@ mod tests {
     #[test]
     fn new() {
         let b = Board::new();
-        for i in A1..COUNT {
+        for i in fields() {
             assert_eq!(b.side(i), Side::Empty);
             assert_eq!(b.piece(i), Piece::Empty);
         }
@@ -58,7 +58,7 @@ mod tests {
         for idx in vec![A7, B7, C7, D7, E7, F7, G7, H7] {
             assert_eq!(b.piece(idx), Piece::Pawn, "Expect pawn at {}", idx);
         }
-        for idx in 0..COUNT {
+        for idx in fields() {
             let is_empty_piece = b.piece(idx) == Piece::Empty;
             let is_empty_side = b.side(idx) == Side::Empty;
             assert_eq!(
@@ -97,12 +97,12 @@ pub struct Board {
 }
 
 impl Board {
-    pub fn side(&self, idx: usize) -> Side {
-        self.sides[idx]
+    pub fn side(&self, f: Field) -> Side {
+        self.sides[f.0]
     }
 
-    pub fn piece(&self, idx: usize) -> Piece {
-        self.pieces[idx]
+    pub fn piece(&self, f: Field) -> Piece {
+        self.pieces[f.0]
     }
 
     pub fn new() -> Board {
@@ -111,17 +111,17 @@ impl Board {
             pieces: [Piece::Empty; COUNT],
         }
     }
-    pub fn from(list: &[(usize, Side, Piece)]) -> Board {
+    pub fn from(list: &[(Field, Side, Piece)]) -> Board {
         let mut sides = [Side::Empty; COUNT];
         let mut pieces = [Piece::Empty; COUNT];
         for (idx, side, piece) in list {
-            sides[*idx] = *side;
-            pieces[*idx] = *piece;
+            sides[idx.0] = *side;
+            pieces[idx.0] = *piece;
         }
         Board { sides, pieces }
     }
     pub fn initial() -> Board {
-        const LIST: [(usize, Side, Piece); 32] = [
+        const LIST: [(Field, Side, Piece); 32] = [
             (A1, Side::White, Piece::Rook),
             (B1, Side::White, Piece::Knight),
             (C1, Side::White, Piece::Bishop),

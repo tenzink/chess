@@ -51,8 +51,8 @@ impl FromStr for Move {
 
 #[derive(Debug, Eq, PartialEq, PartialOrd, Ord, Clone, Copy, Hash)]
 pub struct MoveData {
-    from: usize,
-    to: usize,
+    from: Field,
+    to: Field,
 }
 
 impl FromStr for MoveData {
@@ -157,7 +157,7 @@ mod tests {
         assert_eq!(mv.len(), 0);
     }
 
-    fn piece(s: &str) -> (usize, Side, Piece) {
+    fn piece(s: &str) -> (Field, Side, Piece) {
         let (side, piece) = match &s[..1] {
             "K" => (Side::White, Piece::King),
             "k" => (Side::Black, Piece::King),
@@ -305,7 +305,7 @@ const MAILBOX120_INDICES: [isize; 64] = [
     91, 92, 93, 94, 95, 96, 97, 98];
 
 fn moves_iml(
-    idx: usize,
+    idx: Field,
     side: &Side,
     b: &Board,
     offsets: &[isize],
@@ -313,19 +313,20 @@ fn moves_iml(
     rv: &mut Vec<Move>,
 ) {
     for off in offsets {
-        let mut n = idx;
+        let mut n = idx.0;
         loop {
             n = MAILBOX_INDICES[(MAILBOX120_INDICES[n] + off) as usize];
             if n == MX {
                 break;
             }
-            if b.piece(n) != Piece::Empty {
-                if b.side(n) != *side {
-                    rv.push(Move::Capture(MoveData { from: idx, to: n }));
+            let f = Field(n);
+            if b.piece(f) != Piece::Empty {
+                if b.side(f) != *side {
+                    rv.push(Move::Capture(MoveData { from: idx, to: f }));
                 }
                 break;
             }
-            rv.push(Move::Move(MoveData { from: idx, to: n }));
+            rv.push(Move::Move(MoveData { from: idx, to: f }));
             if !is_sliding {
                 break;
             }
@@ -335,7 +336,7 @@ fn moves_iml(
 
 pub fn moves(side: &Side, b: &Board) -> Vec<Move> {
     let mut rv: Vec<Move> = Vec::new();
-    for idx in 0..COUNT {
+    for idx in fields() {
         if b.side(idx) != *side {
             continue;
         }
