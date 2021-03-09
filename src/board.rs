@@ -5,7 +5,7 @@ use crate::side::Side;
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::field::fields;
+    use crate::field::{fields, row};
 
     #[test]
     fn new() {
@@ -19,24 +19,21 @@ mod tests {
     #[test]
     fn initial() {
         let b = Board::initial();
-        let whites = vec![
-            A1, B1, C1, D1, E1, F1, G1, H1, A2, B2, C2, D2, E2, F2, G2, H2,
-        ];
-        for idx in whites {
-            assert_eq!(b.side(idx), Side::White, "Expect white piece at {}", idx);
+        for r in 1..3 {
+            for idx in row(r) {
+                assert_eq!(b.side(idx), Side::White, "Expect white piece at {}", idx);
+            }
         }
-        let blacks = vec![
-            A7, B7, C7, D7, E7, F7, G7, H7, A8, B8, C8, D8, E8, F8, G8, H8,
-        ];
-        for idx in blacks {
-            assert_eq!(b.side(idx), Side::Black, "Expect black piece at {}", idx);
+        for r in 7..9 {
+            for idx in row(r) {
+                assert_eq!(b.side(idx), Side::Black, "Expect black piece at {}", idx);
+            }
         }
-        let empty = vec![
-            A3, B3, C3, D3, E3, F3, G3, H3, A4, B4, C4, D4, E4, F4, G4, H4, A5, B5, C5, D5, E5, F5,
-            G5, H5, A6, B6, C6, D6, E6, F6, G6, H6,
-        ];
-        for idx in empty {
-            assert_eq!(b.side(idx), Side::Empty, "Expect empty piece at {}", idx);
+        for r in 3..7 {
+            for idx in row(r) {
+                assert_eq!(b.side(idx), Side::Empty, "Expect empty side at {}", idx);
+                assert_eq!(b.piece(idx), Piece::Empty, "Expect empty piece at {}", idx);
+            }
         }
         for idx in vec![E1, E8] {
             assert_eq!(b.piece(idx), Piece::King, "Expect king at {}", idx);
@@ -53,10 +50,10 @@ mod tests {
         for idx in vec![C1, F1, C8, F8] {
             assert_eq!(b.piece(idx), Piece::Bishop, "Expect bishop at {}", idx);
         }
-        for idx in vec![A2, B2, C2, D2, E2, F2, G2, H2] {
+        for idx in row(2) {
             assert_eq!(b.piece(idx), Piece::Pawn, "Expect pawn at {}", idx);
         }
-        for idx in vec![A7, B7, C7, D7, E7, F7, G7, H7] {
+        for idx in row(7) {
             assert_eq!(b.piece(idx), Piece::Pawn, "Expect pawn at {}", idx);
         }
         for idx in fields() {

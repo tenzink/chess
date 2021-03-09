@@ -126,6 +126,26 @@ pub fn fields() -> FieldIter {
     FieldIter(0)
 }
 
+pub struct RowIter(usize, usize);
+
+impl Iterator for RowIter {
+    type Item = Field;
+
+    fn next(&mut self) -> Option<Field> {
+        if self.0 >= self.1 {
+            None
+        } else {
+            let res = Some(Field(self.0));
+            self.0 += 1;
+            res
+        }
+    }
+}
+
+pub fn row(r: usize) -> RowIter {
+    RowIter((r - 1) * 8, r * 8)
+}
+
 #[rustfmt::skip]
 const NAMES: [&'static str; 64] = [
     "a1", "b1", "c1", "d1", "e1", "f1", "g1", "h1",
