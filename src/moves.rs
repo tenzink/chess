@@ -1,6 +1,6 @@
 use crate::board::Board;
 use crate::field::{fields, Field};
-use crate::mv::{Move, MoveData};
+use crate::mv::{capture, mv, Move};
 use crate::piece::Piece;
 use crate::side::Side;
 
@@ -8,7 +8,8 @@ use crate::side::Side;
 mod tests {
     use super::*;
     use crate::board::Board;
-    use crate::mv::Move;
+    use crate::piece::Piece::*;
+    use crate::side::Side::*;
     use std::collections::HashSet;
 
     #[test]
@@ -26,24 +27,24 @@ mod tests {
     #[test]
     fn empty() {
         let b = Board::new();
-        let mv = moves(&Side::White, &b);
+        let mv = moves(&White, &b);
         assert_eq!(mv.len(), 0);
     }
 
     fn piece(s: &str) -> (Field, Side, Piece) {
         let (side, piece) = match &s[..1] {
-            "K" => (Side::White, Piece::King),
-            "k" => (Side::Black, Piece::King),
-            "Q" => (Side::White, Piece::Queen),
-            "q" => (Side::Black, Piece::Queen),
-            "R" => (Side::White, Piece::Rook),
-            "r" => (Side::Black, Piece::Rook),
-            "B" => (Side::White, Piece::Bishop),
-            "b" => (Side::Black, Piece::Bishop),
-            "N" => (Side::White, Piece::Knight),
-            "n" => (Side::Black, Piece::Knight),
-            "P" => (Side::White, Piece::Pawn),
-            "p" => (Side::Black, Piece::Pawn),
+            "K" => (White, King),
+            "k" => (Black, King),
+            "Q" => (White, Queen),
+            "q" => (Black, Queen),
+            "R" => (White, Rook),
+            "r" => (Black, Rook),
+            "B" => (White, Bishop),
+            "b" => (Black, Bishop),
+            "N" => (White, Knight),
+            "n" => (Black, Knight),
+            "P" => (White, Pawn),
+            "p" => (Black, Pawn),
             _ => panic!("Unknown piece"),
         };
         let pos = s[1..].parse::<Field>().unwrap();
@@ -77,18 +78,18 @@ mod tests {
 
     #[test]
     fn king() {
-        test_moves(Side::White, &["Ka1"], &["a1a2", "a1b1", "a1b2"]);
+        test_moves(White, &["Ka1"], &["a1a2", "a1b1", "a1b2"]);
     }
 
     #[test]
     fn king2() {
-        test_moves(Side::White, &["Ka1", "Pa2", "pb2"], &["a1b1", "a1b2x"]);
+        test_moves(White, &["Ka1", "Pa2", "pb2"], &["a1b1", "a1b2x"]);
     }
 
     #[test]
     fn king3() {
         test_moves(
-            Side::White,
+            White,
             &["Ke4"],
             &[
                 "e4e5", "e4e3", "e4f3", "e4f4", "e4f5", "e4d3", "e4d4", "e4d5",
@@ -99,7 +100,7 @@ mod tests {
     #[test]
     fn queen() {
         test_moves(
-            Side::White,
+            White,
             &["Qa1"],
             &[
                 "a1a2", "a1a3", "a1a4", "a1a5", "a1a6", "a1a7", "a1a8", "a1b1", "a1c1", "a1d1",
@@ -112,7 +113,7 @@ mod tests {
     #[test]
     fn rook() {
         test_moves(
-            Side::White,
+            White,
             &["Rb2"],
             &[
                 "b2a2", "b2c2", "b2d2", "b2e2", "b2f2", "b2g2", "b2h2", "b2b1", "b2b3", "b2b4",
@@ -124,7 +125,7 @@ mod tests {
     #[test]
     fn bishop() {
         test_moves(
-            Side::White,
+            White,
             &["Bc2"],
             &[
                 "c2b1", "c2d3", "c2e4", "c2f5", "c2g6", "c2h7", "c2b3", "c2a4", "c2d1",
@@ -134,13 +135,13 @@ mod tests {
 
     #[test]
     fn knight() {
-        test_moves(Side::White, &["Nh8"], &["h8g6", "h8f7"]);
+        test_moves(White, &["Nh8"], &["h8g6", "h8f7"]);
     }
 
     #[test]
     fn knight2() {
         test_moves(
-            Side::White,
+            White,
             &["Nd4"],
             &[
                 "d4c2", "d4e2", "d4b3", "d4f3", "d4c6", "d4e6", "d4b5", "d4f5",
@@ -195,11 +196,11 @@ fn moves_iml(
             let f = Field::from(n);
             if b.piece(f) != Piece::Empty {
                 if b.side(f) != *side {
-                    rv.push(Move::Capture(MoveData { from: idx, to: f }));
+                    rv.push(capture(idx, f));
                 }
                 break;
             }
-            rv.push(Move::Move(MoveData { from: idx, to: f }));
+            rv.push(mv(idx, f));
             if !is_sliding {
                 break;
             }

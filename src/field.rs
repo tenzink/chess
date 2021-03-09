@@ -144,14 +144,15 @@ mod tests {
     use super::*;
 
     #[test]
-    fn algebraic_notation() {
+    fn to_string() {
         assert_eq!(A1.to_string(), "a1");
         assert_eq!(E6.to_string(), "e6");
         assert_eq!(C4.to_string(), "c4");
         assert_eq!(F3.to_string(), "f3");
     }
 
-    fn from_algebraic_notation() {
+    #[test]
+    fn parse() {
         assert_eq!(Field::from_str("a1"), Ok(A1));
         assert_eq!(Field::from_str("e7"), Ok(E7));
         assert_eq!(Field::from_str("c3"), Ok(C3));
