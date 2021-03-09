@@ -1,6 +1,7 @@
 use std::convert::From;
 use std::fmt;
 use std::option::Option;
+use std::str::FromStr;
 
 #[derive(Clone, Copy, Debug, PartialEq, PartialOrd, Eq, Ord, Hash)]
 pub struct Field(pub usize);
@@ -14,6 +15,17 @@ impl fmt::Display for Field {
 impl From<usize> for Field {
     fn from(item: usize) -> Self {
         Field(item)
+    }
+}
+
+impl FromStr for Field {
+    type Err = ();
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        NAMES
+            .iter()
+            .position(|&x| x == s)
+            .map_or(Err(()), |x| Ok(Field::from(x)))
     }
 }
 
@@ -123,10 +135,6 @@ const NAMES: [&'static str; 64] = [
     "a8", "b8", "c8", "d8", "e8", "f8", "g8", "h8",
 ];
 
-pub fn from_algebraic(s: &str) -> Option<Field> {
-    NAMES.iter().position(|&x| x == s).map(|x| Field(x))
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -140,11 +148,11 @@ mod tests {
     }
 
     fn from_algebraic_notation() {
-        assert_eq!(from_algebraic("a1"), Some(A1));
-        assert_eq!(from_algebraic("e7"), Some(E7));
-        assert_eq!(from_algebraic("c3"), Some(C3));
-        assert_eq!(from_algebraic("b9"), None);
-        assert_eq!(from_algebraic(""), None);
-        assert_eq!(from_algebraic("a1x"), None);
+        assert_eq!(Field::from_str("a1"), Ok(A1));
+        assert_eq!(Field::from_str("e7"), Ok(E7));
+        assert_eq!(Field::from_str("c3"), Ok(C3));
+        assert!(Field::from_str("b9").is_err());
+        assert!(Field::from_str("").is_err());
+        assert!(Field::from_str("a1x").is_err());
     }
 }

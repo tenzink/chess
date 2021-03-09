@@ -1,6 +1,5 @@
 use crate::board::Board;
 use crate::field::*;
-use crate::moves::from_algebraic;
 use crate::piece::Piece;
 use crate::side::Side;
 use std::fmt;
@@ -62,16 +61,15 @@ impl FromStr for MoveData {
         if s.len() != 4 {
             Err(())?
         }
-        match (from_algebraic(&s[0..2]), from_algebraic(&s[2..4])) {
-            (Some(from), Some(to)) => Ok(MoveData { from, to }),
-            _ => Err(()),
-        }
+        let from = s[0..2].parse::<Field>()?;
+        let to = s[2..4].parse::<Field>()?;
+        Ok(MoveData { from, to })
     }
 }
 
 impl fmt::Display for MoveData {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "{}{}", algebraic(self.from), algebraic(self.to))
+        write!(f, "{}{}", self.from, self.to)
     }
 }
 
@@ -173,7 +171,7 @@ mod tests {
             "p" => (Side::Black, Piece::Pawn),
             _ => panic!("Unknown piece"),
         };
-        let pos = from_algebraic(&s[1..]).unwrap();
+        let pos = s[1..].parse::<Field>().unwrap();
         (pos, side, piece)
     }
 
@@ -319,7 +317,7 @@ fn moves_iml(
             if n == MX {
                 break;
             }
-            let f = Field(n);
+            let f = Field::from(n);
             if b.piece(f) != Piece::Empty {
                 if b.side(f) != *side {
                     rv.push(Move::Capture(MoveData { from: idx, to: f }));
