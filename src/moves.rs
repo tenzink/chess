@@ -204,20 +204,12 @@ mod tests {
 
     #[test]
     fn king() {
-        test_moves(
-            Side::White,
-            &["Ka1"],
-            &["a1a2", "a1b1", "a1b2"],
-        );
+        test_moves(Side::White, &["Ka1"], &["a1a2", "a1b1", "a1b2"]);
     }
 
     #[test]
     fn king2() {
-        test_moves(
-            Side::White,
-            &["Ka1", "Pa2", "pb2"],
-            &["a1b1", "a1b2x"],
-        );
+        test_moves(Side::White, &["Ka1", "Pa2", "pb2"], &["a1b1", "a1b2x"]);
     }
 
     #[test]
@@ -225,7 +217,9 @@ mod tests {
         test_moves(
             Side::White,
             &["Ke4"],
-            &["e4e5", "e4e3", "e4f3", "e4f4", "e4f5", "e4d3", "e4d4", "e4d5"]
+            &[
+                "e4e5", "e4e3", "e4f3", "e4f4", "e4f5", "e4d3", "e4d4", "e4d5",
+            ],
         );
     }
 
@@ -235,9 +229,9 @@ mod tests {
             Side::White,
             &["Qa1"],
             &[
-                "a1a2", "a1a3", "a1a4", "a1a5", "a1a6", "a1a7", "a1a8",
-                "a1b1", "a1c1", "a1d1", "a1e1", "a1f1", "a1g1", "a1h1",
-                "a1b2", "a1c3", "a1d4", "a1e5", "a1f6", "a1g7", "a1h8",
+                "a1a2", "a1a3", "a1a4", "a1a5", "a1a6", "a1a7", "a1a8", "a1b1", "a1c1", "a1d1",
+                "a1e1", "a1f1", "a1g1", "a1h1", "a1b2", "a1c3", "a1d4", "a1e5", "a1f6", "a1g7",
+                "a1h8",
             ],
         );
     }
@@ -248,8 +242,8 @@ mod tests {
             Side::White,
             &["Rb2"],
             &[
-                "b2a2", "b2c2", "b2d2", "b2e2", "b2f2", "b2g2", "b2h2",
-                "b2b1", "b2b3", "b2b4", "b2b5", "b2b6", "b2b7", "b2b8"
+                "b2a2", "b2c2", "b2d2", "b2e2", "b2f2", "b2g2", "b2h2", "b2b1", "b2b3", "b2b4",
+                "b2b5", "b2b6", "b2b7", "b2b8",
             ],
         );
     }
@@ -260,19 +254,14 @@ mod tests {
             Side::White,
             &["Bc2"],
             &[
-                "c2b1", "c2d3", "c2e4", "c2f5", "c2g6", "c2h7",
-                "c2b3", "c2a4", "c2d1"
+                "c2b1", "c2d3", "c2e4", "c2f5", "c2g6", "c2h7", "c2b3", "c2a4", "c2d1",
             ],
         );
     }
 
     #[test]
     fn knight() {
-        test_moves(
-            Side::White,
-            &["Nh8"],
-            &["h8g6", "h8f7"],
-        );
+        test_moves(Side::White, &["Nh8"], &["h8g6", "h8f7"]);
     }
 
     #[test]
@@ -280,7 +269,9 @@ mod tests {
         test_moves(
             Side::White,
             &["Nd4"],
-            &["d4c2", "d4e2", "d4b3", "d4f3", "d4c6", "d4e6", "d4b5", "d4f5"],
+            &[
+                "d4c2", "d4e2", "d4b3", "d4f3", "d4c6", "d4e6", "d4b5", "d4f5",
+            ],
         );
     }
 }
@@ -349,48 +340,14 @@ pub fn moves(side: &Side, b: &Board) -> Vec<Move> {
             continue;
         }
         let piece = b.piece(idx);
+        let mut gen_moves = |moves, slide| moves_iml(idx, side, b, moves, slide, &mut rv);
         match piece {
             Piece::Empty => continue,
-            Piece::King => moves_iml(
-                idx,
-                side,
-                b,
-                &[-11, -10, -9, -1, 1, 9, 10, 11],
-                false,
-                &mut rv,
-            ),
-            Piece::Queen => moves_iml(
-                idx,
-                side,
-                b,
-                &[-11, -10, -9, -1, 1, 9, 10, 11],
-                true,
-                &mut rv,
-            ),
-            Piece::Rook => moves_iml(
-                idx,
-                side,
-                b,
-                &[-10, -1, 1, 10],
-                true,
-                &mut rv,
-            ),
-            Piece::Bishop => moves_iml(
-                idx,
-                side,
-                b,
-                &[-11, -9, 9, 11],
-                true,
-                &mut rv,
-            ),
-            Piece::Knight => moves_iml(
-                idx,
-                side,
-                b,
-                &[-21, -19, -12, -8, 8, 12, 19, 21],
-                false,
-                &mut rv,
-            ),
+            Piece::King => gen_moves(&[-11, -10, -9, -1, 1, 9, 10, 11], false),
+            Piece::Queen => gen_moves(&[-11, -10, -9, -1, 1, 9, 10, 11], true),
+            Piece::Rook => gen_moves(&[-10, -1, 1, 10], true),
+            Piece::Bishop => gen_moves(&[-11, -9, 9, 11], true),
+            Piece::Knight => gen_moves(&[-21, -19, -12, -8, 8, 12, 19, 21], false),
             Piece::Pawn => continue,
         }
     }
