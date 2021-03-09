@@ -1,3 +1,4 @@
+use std::convert::From;
 use std::fmt;
 use std::option::Option;
 
@@ -7,6 +8,12 @@ pub struct Field(pub usize);
 impl fmt::Display for Field {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(f, "{}", NAMES[self.0])
+    }
+}
+
+impl From<usize> for Field {
+    fn from(item: usize) -> Self {
+        Field(item)
     }
 }
 
@@ -116,10 +123,6 @@ const NAMES: [&'static str; 64] = [
     "a8", "b8", "c8", "d8", "e8", "f8", "g8", "h8",
 ];
 
-pub fn algebraic(f: Field) -> &'static str {
-    NAMES[f.0]
-}
-
 pub fn from_algebraic(s: &str) -> Option<Field> {
     NAMES.iter().position(|&x| x == s).map(|x| Field(x))
 }
@@ -130,10 +133,10 @@ mod tests {
 
     #[test]
     fn algebraic_notation() {
-        assert_eq!(algebraic(A1), "a1");
-        assert_eq!(algebraic(E6), "e6");
-        assert_eq!(algebraic(C4), "c4");
-        assert_eq!(algebraic(F3), "f3");
+        assert_eq!(A1.to_string(), "a1");
+        assert_eq!(E6.to_string(), "e6");
+        assert_eq!(C4.to_string(), "c4");
+        assert_eq!(F3.to_string(), "f3");
     }
 
     fn from_algebraic_notation() {
