@@ -1,5 +1,5 @@
 use crate::board::Board;
-use crate::field::*;
+use crate::field::{fields, Field};
 use crate::piece::Piece;
 use crate::side::Side;
 use std::fmt;
@@ -77,6 +77,7 @@ impl fmt::Display for MoveData {
 mod tests {
     use super::*;
     use crate::board::Board;
+    use crate::field::named::*;
     use std::collections::HashSet;
 
     #[test]

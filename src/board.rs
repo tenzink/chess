@@ -1,10 +1,11 @@
-use crate::field::*;
+use crate::field::{named::*, Field, COUNT};
 use crate::piece::Piece;
 use crate::side::Side;
 
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::field::fields;
 
     #[test]
     fn new() {
