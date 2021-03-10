@@ -69,7 +69,14 @@ mod tests {
 
     #[test]
     fn from() {
-        let b = Board::from(&[(A1, Side::White, Piece::Rook)]);
+        let b = Board::from(
+            &[(A1, Side::White, Piece::Rook)],
+            Side::White,
+            [true, true, true, true],
+            None,
+            0,
+            1,
+        );
         assert_eq!(b.side(A1), Side::White);
         assert_eq!(b.piece(A1), Piece::Rook);
         assert_eq!(b.side(A2), Side::Empty);
@@ -78,10 +85,17 @@ mod tests {
 
     #[test]
     fn from2() {
-        let b = Board::from(&[
-            (H7, Side::White, Piece::Pawn),
-            (H8, Side::Black, Piece::King),
-        ]);
+        let b = Board::from(
+            &[
+                (H7, Side::White, Piece::Pawn),
+                (H8, Side::Black, Piece::King),
+            ],
+            Side::White,
+            [true, true, true, true],
+            None,
+            0,
+            1,
+        );
         assert_eq!(b.side(H7), Side::White);
         assert_eq!(b.piece(H7), Piece::Pawn);
         assert_eq!(b.side(H8), Side::Black);
@@ -92,6 +106,11 @@ mod tests {
 pub struct Board {
     sides: [Side; COUNT],
     pieces: [Piece; COUNT],
+    pub active: Side,
+    pub can_castle: [bool; 4], // white-king, white-queen, black-king, black-queen
+    pub en_passant: Option<Field>,
+    pub halfmove_clock: u32,
+    pub full_moves: u32,
 }
 
 impl Board {
@@ -104,20 +123,34 @@ impl Board {
     }
 
     pub fn new() -> Board {
-        Board {
-            sides: [Side::Empty; COUNT],
-            pieces: [Piece::Empty; COUNT],
-        }
+        Board::from(&[], Side::White, [true, true, true, true], None, 0, 1)
     }
-    pub fn from(list: &[(Field, Side, Piece)]) -> Board {
+
+    pub fn from(
+        list: &[(Field, Side, Piece)],
+        active: Side,
+        can_castle: [bool; 4],
+        en_passant: Option<Field>,
+        halfmove_clock: u32,
+        full_moves: u32,
+    ) -> Board {
         let mut sides = [Side::Empty; COUNT];
         let mut pieces = [Piece::Empty; COUNT];
         for (idx, side, piece) in list {
             sides[idx.0] = *side;
             pieces[idx.0] = *piece;
         }
-        Board { sides, pieces }
+        Board {
+            sides,
+            pieces,
+            active,
+            can_castle,
+            en_passant,
+            halfmove_clock,
+            full_moves,
+        }
     }
+
     pub fn initial() -> Board {
         use crate::piece::Piece::*;
         use crate::side::Side::*;
@@ -155,6 +188,6 @@ impl Board {
             (G8, Black, Knight),
             (H8, Black, Rook),
         ];
-        Board::from(&LIST)
+        Board::from(&LIST, Side::White, [true, true, true, true], None, 0, 1)
     }
 }
