@@ -29,6 +29,12 @@ impl FromStr for Field {
     }
 }
 
+impl Field {
+    fn new(row: usize, column: usize) -> Self {
+        Field(row * 8 + column - 9)
+    }
+}
+
 pub mod named {
     use super::Field;
     pub const A1: Field = Field(0);
@@ -169,6 +175,13 @@ mod tests {
         assert_eq!(E6.to_string(), "e6");
         assert_eq!(C4.to_string(), "c4");
         assert_eq!(F3.to_string(), "f3");
+    }
+
+    #[test]
+    fn new() {
+        assert_eq!(Field::new(1, 1), A1);
+        assert_eq!(Field::new(2, 4), D2);
+        assert_eq!(Field::new(8, 6), F8);
     }
 
     #[test]

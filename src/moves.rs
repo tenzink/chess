@@ -2,13 +2,13 @@ use crate::board::Board;
 use crate::field::{fields, Field};
 use crate::mv::{capture, mv, Move};
 use crate::piece::Piece;
-use crate::side::Side;
 
 #[cfg(test)]
 mod tests {
     use super::*;
     use crate::board::Board;
     use crate::piece::Piece::*;
+    use crate::side::Side;
     use crate::side::Side::*;
     use std::collections::HashSet;
 
@@ -27,7 +27,7 @@ mod tests {
     #[test]
     fn empty() {
         let b = Board::new();
-        let mv = moves(&White, &b);
+        let mv = moves(&b);
         assert_eq!(mv.len(), 0);
     }
 
@@ -51,7 +51,13 @@ mod tests {
         (pos, side, piece)
     }
 
-    fn test_moves(side: Side, pieces_str: &[&str], expected: &[&str]) {
+    fn test_moves(
+        side: Side,
+        pieces_str: &[&str],
+        expected: &[&str],
+        can_castle: [bool; 4],
+        en_passant: Option<Field>,
+    ) {
         let mut expected_moves = HashSet::<Move>::new();
         for mv in expected {
             let mv: Move = mv.parse::<Move>().unwrap();
@@ -61,8 +67,8 @@ mod tests {
         for pieces_str in pieces_str {
             pieces.push(piece(pieces_str));
         }
-        let b = Board::from(&pieces);
-        let moves = moves(&side, &b);
+        let b = Board::from(&pieces, side, can_castle, en_passant, 0, 1);
+        let moves = moves(&b);
         let moves: HashSet<_> = moves.iter().cloned().collect();
         let expected = expected_moves;
         let redundant: Vec<_> = moves.difference(&expected).collect();
@@ -78,12 +84,24 @@ mod tests {
 
     #[test]
     fn king() {
-        test_moves(White, &["Ka1"], &["a1a2", "a1b1", "a1b2"]);
+        test_moves(
+            White,
+            &["Ka1"],
+            &["a1a2", "a1b1", "a1b2"],
+            [true, true, true, true],
+            None,
+        );
     }
 
     #[test]
     fn king2() {
-        test_moves(White, &["Ka1", "Pa2", "pb2"], &["a1b1", "a1b2x"]);
+        test_moves(
+            White,
+            &["Ka1", "Pa2", "pb2"],
+            &["a1b1", "a1b2x"],
+            [true, true, true, true],
+            None,
+        );
     }
 
     #[test]
@@ -94,6 +112,8 @@ mod tests {
             &[
                 "e4e5", "e4e3", "e4f3", "e4f4", "e4f5", "e4d3", "e4d4", "e4d5",
             ],
+            [true, true, true, true],
+            None,
         );
     }
 
@@ -107,6 +127,8 @@ mod tests {
                 "a1e1", "a1f1", "a1g1", "a1h1", "a1b2", "a1c3", "a1d4", "a1e5", "a1f6", "a1g7",
                 "a1h8",
             ],
+            [true, true, true, true],
+            None,
         );
     }
 
@@ -119,6 +141,8 @@ mod tests {
                 "b2a2", "b2c2", "b2d2", "b2e2", "b2f2", "b2g2", "b2h2", "b2b1", "b2b3", "b2b4",
                 "b2b5", "b2b6", "b2b7", "b2b8",
             ],
+            [true, true, true, true],
+            None,
         );
     }
 
@@ -130,12 +154,20 @@ mod tests {
             &[
                 "c2b1", "c2d3", "c2e4", "c2f5", "c2g6", "c2h7", "c2b3", "c2a4", "c2d1",
             ],
+            [true, true, true, true],
+            None,
         );
     }
 
     #[test]
     fn knight() {
-        test_moves(White, &["Nh8"], &["h8g6", "h8f7"]);
+        test_moves(
+            White,
+            &["Nh8"],
+            &["h8g6", "h8f7"],
+            [true, true, true, true],
+            None,
+        );
     }
 
     #[test]
@@ -146,6 +178,8 @@ mod tests {
             &[
                 "d4c2", "d4e2", "d4b3", "d4f3", "d4c6", "d4e6", "d4b5", "d4f5",
             ],
+            [true, true, true, true],
+            None,
         );
     }
 }
@@ -178,14 +212,7 @@ const MAILBOX120_INDICES: [isize; 64] = [
     81, 82, 83, 84, 85, 86, 87, 88,
     91, 92, 93, 94, 95, 96, 97, 98];
 
-fn moves_iml(
-    idx: Field,
-    side: &Side,
-    b: &Board,
-    offsets: &[isize],
-    is_sliding: bool,
-    rv: &mut Vec<Move>,
-) {
+fn moves_iml(idx: Field, b: &Board, offsets: &[isize], is_sliding: bool, rv: &mut Vec<Move>) {
     for off in offsets {
         let mut n = idx.0;
         loop {
@@ -195,7 +222,7 @@ fn moves_iml(
             }
             let f = Field::from(n);
             if b.piece(f) != Piece::Empty {
-                if b.side(f) != *side {
+                if b.side(f) != b.active {
                     rv.push(capture(idx, f));
                 }
                 break;
@@ -208,14 +235,14 @@ fn moves_iml(
     }
 }
 
-pub fn moves(side: &Side, b: &Board) -> Vec<Move> {
+pub fn moves(b: &Board) -> Vec<Move> {
     let mut rv: Vec<Move> = Vec::new();
     for idx in fields() {
-        if b.side(idx) != *side {
+        if b.side(idx) != b.active {
             continue;
         }
         let piece = b.piece(idx);
-        let mut gen_moves = |moves, slide| moves_iml(idx, side, b, moves, slide, &mut rv);
+        let mut gen_moves = |moves, slide| moves_iml(idx, b, moves, slide, &mut rv);
         match piece {
             Piece::Empty => continue,
             Piece::King => gen_moves(&[-11, -10, -9, -1, 1, 9, 10, 11], false),
