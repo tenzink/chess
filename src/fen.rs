@@ -64,13 +64,64 @@ fn to_fen(b: &Board) -> String {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::field::named::*;
 
     #[test]
-    fn to_string() {
+    fn to_string1() {
         let b = Board::initial();
         assert_eq!(
             to_fen(&b),
             "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"
+        );
+    }
+
+    #[test]
+    fn to_string2() {
+        let mut b = Board::initial();
+        b.can_castle[0] = false;
+        assert_eq!(
+            to_fen(&b),
+            "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w -Qkq - 0 1"
+        );
+        b.can_castle[2] = false;
+        assert_eq!(
+            to_fen(&b),
+            "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w -Q-q - 0 1"
+        );
+        b.can_castle[3] = false;
+        assert_eq!(
+            to_fen(&b),
+            "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w -Q-- - 0 1"
+        );
+        b.can_castle[1] = false;
+        assert_eq!(
+            to_fen(&b),
+            "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w ---- - 0 1"
+        );
+    }
+
+    #[test]
+    fn to_string3() {
+        let mut b = Board::initial();
+        b.active = Side::Black;
+        assert_eq!(
+            to_fen(&b),
+            "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR b KQkq - 0 1"
+        );
+        b.halfmove_clock = 12;
+        assert_eq!(
+            to_fen(&b),
+            "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR b KQkq - 12 1"
+        );
+        b.full_moves = 11;
+        assert_eq!(
+            to_fen(&b),
+            "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR b KQkq - 12 11"
+        );
+        b.en_passant = Some(A3);
+        assert_eq!(
+            to_fen(&b),
+            "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR b KQkq a3 12 11"
         );
     }
 }
