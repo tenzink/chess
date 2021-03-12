@@ -1,7 +1,7 @@
 use crate::board::Board;
 use crate::field::{row, Field};
-use crate::piece::Piece;
-use crate::side::Side;
+use crate::piece::{ColoredPiece, Side};
+use std::convert::TryFrom;
 use std::fmt::Write;
 
 fn to_fen(b: &Board) -> String {
@@ -9,32 +9,21 @@ fn to_fen(b: &Board) -> String {
     for r in (1..9).rev() {
         let mut empty_count: u8 = 0;
         for f in row(r) {
-            let p = b.piece(f);
-            let s = b.side(f);
-            if let Piece::Empty = p {
-                empty_count += 1;
-                continue;
+            match b.pieces[f.0] {
+                ColoredPiece::Empty => {
+                    empty_count += 1;
+                    continue;
+                }
+                e => {
+                    if empty_count > 0 {
+                        write!(&mut rv, "{}", empty_count).expect("Convert number to string is ok");
+                        empty_count = 0;
+                    }
+                    if let Some(sym) = e.symbol() {
+                        rv.push(sym);
+                    }
+                }
             }
-            if empty_count > 0 {
-                write!(&mut rv, "{}", empty_count).expect("Convert number to string is ok");
-                empty_count = 0;
-            }
-            let sym = match (p, s) {
-                (Piece::King, Side::Black) => 'k',
-                (Piece::Queen, Side::Black) => 'q',
-                (Piece::Rook, Side::Black) => 'r',
-                (Piece::Knight, Side::Black) => 'n',
-                (Piece::Bishop, Side::Black) => 'b',
-                (Piece::Pawn, Side::Black) => 'p',
-                (Piece::King, Side::White) => 'K',
-                (Piece::Queen, Side::White) => 'Q',
-                (Piece::Rook, Side::White) => 'R',
-                (Piece::Knight, Side::White) => 'N',
-                (Piece::Bishop, Side::White) => 'B',
-                (Piece::Pawn, Side::White) => 'P',
-                _ => panic!("Unknown piece={:?} side={:?}", p, s),
-            };
-            rv.push(sym);
         }
         if empty_count > 0 {
             write!(&mut rv, "{}", empty_count).expect("Convert number to string is ok");
@@ -44,7 +33,6 @@ fn to_fen(b: &Board) -> String {
     match b.active {
         Side::White => rv.push('w'),
         Side::Black => rv.push('b'),
-        _ => panic!("Non-initialized board side"),
     }
     rv.push(' ');
     if b.can_castle[0] {
@@ -101,24 +89,9 @@ fn from_fen(s: &str) -> Result<Board, &'static str> {
             column += count;
             continue;
         }
-        let (piece, side) = match ch {
-            'k' => (Piece::King, Side::Black),
-            'q' => (Piece::Queen, Side::Black),
-            'r' => (Piece::Rook, Side::Black),
-            'n' => (Piece::Knight, Side::Black),
-            'b' => (Piece::Bishop, Side::Black),
-            'p' => (Piece::Pawn, Side::Black),
-            'K' => (Piece::King, Side::White),
-            'Q' => (Piece::Queen, Side::White),
-            'R' => (Piece::Rook, Side::White),
-            'N' => (Piece::Knight, Side::White),
-            'B' => (Piece::Bishop, Side::White),
-            'P' => (Piece::Pawn, Side::White),
-            _ => Err("Invalid piece")?,
-        };
+        let piece = ColoredPiece::try_from(ch)?;
         let f = Field::new(row, column);
         b.pieces[f.0] = piece;
-        b.sides[f.0] = side;
         column += 1;
     }
     if row != 1 {
@@ -179,7 +152,6 @@ mod tests {
         let parsed = from_fen("rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq e3 0 1");
         let mut b = Board::initial();
         b.pieces.swap(E2.0, E4.0);
-        b.sides.swap(E2.0, E4.0);
         b.active = Side::Black;
         b.en_passant = Some(E3);
         b.halfmove_clock = 0;
@@ -192,9 +164,7 @@ mod tests {
         let parsed = from_fen("rnbqkbnr/ppp1pppp/8/3p4/4P3/8/PPPP1PPP/RNBQKBNR w KQkq d6 0 2");
         let mut b = Board::initial();
         b.pieces.swap(E2.0, E4.0);
-        b.sides.swap(E2.0, E4.0);
         b.pieces.swap(D7.0, D5.0);
-        b.sides.swap(D7.0, D5.0);
         b.active = Side::White;
         b.en_passant = Some(D6);
         b.halfmove_clock = 0;
@@ -207,11 +177,8 @@ mod tests {
         let parsed = from_fen("rnbqkbnr/ppp1pppp/8/3p4/4P3/5N2/PPPP1PPP/RNBQKB1R b KQkq - 1 2");
         let mut b = Board::initial();
         b.pieces.swap(E2.0, E4.0);
-        b.sides.swap(E2.0, E4.0);
         b.pieces.swap(D7.0, D5.0);
-        b.sides.swap(D7.0, D5.0);
         b.pieces.swap(G1.0, F3.0);
-        b.sides.swap(G1.0, F3.0);
         b.active = Side::Black;
         b.en_passant = None;
         b.halfmove_clock = 1;
@@ -224,13 +191,9 @@ mod tests {
         let parsed = from_fen("rnbq1bnr/pppkpppp/8/3p4/4P3/5N2/PPPP1PPP/RNBQKB1R w KQ - 2 3");
         let mut b = Board::initial();
         b.pieces.swap(E2.0, E4.0);
-        b.sides.swap(E2.0, E4.0);
         b.pieces.swap(D7.0, D5.0);
-        b.sides.swap(D7.0, D5.0);
         b.pieces.swap(G1.0, F3.0);
-        b.sides.swap(G1.0, F3.0);
         b.pieces.swap(E8.0, D7.0);
-        b.sides.swap(E8.0, D7.0);
         b.active = Side::White;
         b.en_passant = None;
         b.can_castle[2] = false;
