@@ -103,9 +103,10 @@ mod tests {
     }
 }
 
+#[derive(Debug, PartialEq)]
 pub struct Board {
-    sides: [Side; COUNT],
-    pieces: [Piece; COUNT],
+    pub sides: [Side; COUNT],
+    pub pieces: [Piece; COUNT],
     pub active: Side,
     pub can_castle: [bool; 4], // white-king, white-queen, black-king, black-queen
     pub en_passant: Option<Field>,
