@@ -45,7 +45,6 @@ fn to_fen(b: &Board) -> String {
     match b.active {
         Side::White => rv.push('w'),
         Side::Black => rv.push('b'),
-        _ => panic!("Non-initialized board side"),
     }
     rv.push(' ');
     if b.can_castle[0] {

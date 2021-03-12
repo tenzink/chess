@@ -12,7 +12,6 @@ pub fn moves(b: &Board) -> Vec<Move> {
             }
             let mut gen_moves = |moves, slide| moves_iml(idx, b, moves, slide, &mut rv);
             match piece {
-                Piece::Empty => continue,
                 Piece::King => gen_moves(&[-11, -10, -9, -1, 1, 9, 10, 11], false),
                 Piece::Queen => gen_moves(&[-11, -10, -9, -1, 1, 9, 10, 11], true),
                 Piece::Rook => gen_moves(&[-10, -1, 1, 10], true),

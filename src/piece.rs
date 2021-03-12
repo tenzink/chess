@@ -47,7 +47,6 @@ pub mod named {
 
 #[derive(Debug, PartialEq, Eq, Clone, Copy)]
 pub enum Piece {
-    Empty,
     King,
     Queen,
     Rook,
@@ -58,7 +57,6 @@ pub enum Piece {
 
 #[derive(Debug, PartialEq, Eq, Clone, Copy)]
 pub enum Side {
-    Empty,
     White,
     Black,
 }
