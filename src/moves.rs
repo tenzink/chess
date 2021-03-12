@@ -82,8 +82,8 @@ mod tests {
     use super::*;
     use crate::board::Board;
     use crate::piece::Piece::*;
-    use crate::side::Side;
-    use crate::side::Side::*;
+    use crate::piece::Side;
+    use crate::piece::Side::*;
     use std::collections::HashSet;
 
     #[test]

@@ -1,7 +1,6 @@
 use crate::board::Board;
 use crate::field::{row, Field};
-use crate::piece::Piece;
-use crate::side::Side;
+use crate::piece::{Piece, Side};
 use std::fmt::Write;
 
 fn to_fen(b: &Board) -> String {

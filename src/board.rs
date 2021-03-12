@@ -1,6 +1,5 @@
 use crate::field::{named::*, Field, COUNT};
-use crate::piece::Piece;
-use crate::side::Side;
+use crate::piece::{Piece, Side};
 
 #[derive(Debug, PartialEq)]
 pub struct Board {
@@ -53,7 +52,7 @@ impl Board {
 
     pub fn initial() -> Board {
         use crate::piece::Piece::*;
-        use crate::side::Side::*;
+        use crate::piece::Side::*;
         const LIST: [(Field, Side, Piece); 32] = [
             (A1, White, Rook),
             (B1, White, Knight),
