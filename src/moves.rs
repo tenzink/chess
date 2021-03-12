@@ -1,24 +1,25 @@
 use crate::board::Board;
 use crate::field::{fields, Field};
 use crate::mv::{capture, mv, Move};
-use crate::piece::Piece;
+use crate::piece::{ColoredPiece, Piece};
 
 pub fn moves(b: &Board) -> Vec<Move> {
     let mut rv: Vec<Move> = Vec::new();
     for idx in fields() {
-        if b.side(idx) != b.active {
-            continue;
-        }
-        let piece = b.piece(idx);
-        let mut gen_moves = |moves, slide| moves_iml(idx, b, moves, slide, &mut rv);
-        match piece {
-            Piece::Empty => continue,
-            Piece::King => gen_moves(&[-11, -10, -9, -1, 1, 9, 10, 11], false),
-            Piece::Queen => gen_moves(&[-11, -10, -9, -1, 1, 9, 10, 11], true),
-            Piece::Rook => gen_moves(&[-10, -1, 1, 10], true),
-            Piece::Bishop => gen_moves(&[-11, -9, 9, 11], true),
-            Piece::Knight => gen_moves(&[-21, -19, -12, -8, 8, 12, 19, 21], false),
-            Piece::Pawn => continue,
+        if let ColoredPiece::P(piece, s) = b.pieces[idx.0] {
+            if s != b.active {
+                continue;
+            }
+            let mut gen_moves = |moves, slide| moves_iml(idx, b, moves, slide, &mut rv);
+            match piece {
+                Piece::Empty => continue,
+                Piece::King => gen_moves(&[-11, -10, -9, -1, 1, 9, 10, 11], false),
+                Piece::Queen => gen_moves(&[-11, -10, -9, -1, 1, 9, 10, 11], true),
+                Piece::Rook => gen_moves(&[-10, -1, 1, 10], true),
+                Piece::Bishop => gen_moves(&[-11, -9, 9, 11], true),
+                Piece::Knight => gen_moves(&[-21, -19, -12, -8, 8, 12, 19, 21], false),
+                Piece::Pawn => continue,
+            }
         }
     }
     rv
@@ -63,8 +64,8 @@ fn moves_iml(idx: Field, b: &Board, offsets: &[isize], is_sliding: bool, rv: &mu
                 break;
             }
             let f = Field::from(n);
-            if b.piece(f) != Piece::Empty {
-                if b.side(f) != b.active {
+            if let ColoredPiece::P(_, c) = b.pieces[f.0] {
+                if c != b.active {
                     rv.push(capture(idx, f));
                 }
                 break;
@@ -81,7 +82,7 @@ fn moves_iml(idx: Field, b: &Board, offsets: &[isize], is_sliding: bool, rv: &mu
 mod tests {
     use super::*;
     use crate::board::Board;
-    use crate::piece::Piece::*;
+    use crate::piece::named;
     use crate::piece::Side;
     use crate::piece::Side::*;
     use std::collections::HashSet;
@@ -105,24 +106,24 @@ mod tests {
         assert_eq!(mv.len(), 0);
     }
 
-    fn piece(s: &str) -> (Field, Side, Piece) {
-        let (side, piece) = match &s[..1] {
-            "K" => (White, King),
-            "k" => (Black, King),
-            "Q" => (White, Queen),
-            "q" => (Black, Queen),
-            "R" => (White, Rook),
-            "r" => (Black, Rook),
-            "B" => (White, Bishop),
-            "b" => (Black, Bishop),
-            "N" => (White, Knight),
-            "n" => (Black, Knight),
-            "P" => (White, Pawn),
-            "p" => (Black, Pawn),
+    fn piece(s: &str) -> (Field, ColoredPiece) {
+        let piece = match &s[..1] {
+            "K" => named::K,
+            "k" => named::k,
+            "Q" => named::Q,
+            "q" => named::q,
+            "R" => named::R,
+            "r" => named::r,
+            "B" => named::B,
+            "b" => named::b,
+            "N" => named::N,
+            "n" => named::n,
+            "P" => named::P,
+            "p" => named::p,
             _ => panic!("Unknown piece"),
         };
         let pos = s[1..].parse::<Field>().unwrap();
-        (pos, side, piece)
+        (pos, piece)
     }
 
     fn test_moves(
