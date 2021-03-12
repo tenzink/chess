@@ -2,6 +2,96 @@ use crate::field::{named::*, Field, COUNT};
 use crate::piece::Piece;
 use crate::side::Side;
 
+#[derive(Debug, PartialEq)]
+pub struct Board {
+    pub sides: [Side; COUNT],
+    pub pieces: [Piece; COUNT],
+    pub active: Side,
+    pub can_castle: [bool; 4], // white-king, white-queen, black-king, black-queen
+    pub en_passant: Option<Field>,
+    pub halfmove_clock: u32,
+    pub full_moves: u32,
+}
+
+impl Board {
+    pub fn side(&self, f: Field) -> Side {
+        self.sides[f.0]
+    }
+
+    pub fn piece(&self, f: Field) -> Piece {
+        self.pieces[f.0]
+    }
+
+    pub fn new() -> Board {
+        Board::from(&[], Side::White, [true, true, true, true], None, 0, 1)
+    }
+
+    pub fn from(
+        list: &[(Field, Side, Piece)],
+        active: Side,
+        can_castle: [bool; 4],
+        en_passant: Option<Field>,
+        halfmove_clock: u32,
+        full_moves: u32,
+    ) -> Board {
+        let mut sides = [Side::Empty; COUNT];
+        let mut pieces = [Piece::Empty; COUNT];
+        for (idx, side, piece) in list {
+            sides[idx.0] = *side;
+            pieces[idx.0] = *piece;
+        }
+        Board {
+            sides,
+            pieces,
+            active,
+            can_castle,
+            en_passant,
+            halfmove_clock,
+            full_moves,
+        }
+    }
+
+    pub fn initial() -> Board {
+        use crate::piece::Piece::*;
+        use crate::side::Side::*;
+        const LIST: [(Field, Side, Piece); 32] = [
+            (A1, White, Rook),
+            (B1, White, Knight),
+            (C1, White, Bishop),
+            (D1, White, Queen),
+            (E1, White, King),
+            (F1, White, Bishop),
+            (G1, White, Knight),
+            (H1, White, Rook),
+            (A2, White, Pawn),
+            (B2, White, Pawn),
+            (C2, White, Pawn),
+            (D2, White, Pawn),
+            (E2, White, Pawn),
+            (F2, White, Pawn),
+            (G2, White, Pawn),
+            (H2, White, Pawn),
+            (A7, Black, Pawn),
+            (B7, Black, Pawn),
+            (C7, Black, Pawn),
+            (D7, Black, Pawn),
+            (E7, Black, Pawn),
+            (F7, Black, Pawn),
+            (G7, Black, Pawn),
+            (H7, Black, Pawn),
+            (A8, Black, Rook),
+            (B8, Black, Knight),
+            (C8, Black, Bishop),
+            (D8, Black, Queen),
+            (E8, Black, King),
+            (F8, Black, Bishop),
+            (G8, Black, Knight),
+            (H8, Black, Rook),
+        ];
+        Board::from(&LIST, Side::White, [true, true, true, true], None, 0, 1)
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -100,95 +190,5 @@ mod tests {
         assert_eq!(b.piece(H7), Piece::Pawn);
         assert_eq!(b.side(H8), Side::Black);
         assert_eq!(b.piece(H8), Piece::King);
-    }
-}
-
-#[derive(Debug, PartialEq)]
-pub struct Board {
-    pub sides: [Side; COUNT],
-    pub pieces: [Piece; COUNT],
-    pub active: Side,
-    pub can_castle: [bool; 4], // white-king, white-queen, black-king, black-queen
-    pub en_passant: Option<Field>,
-    pub halfmove_clock: u32,
-    pub full_moves: u32,
-}
-
-impl Board {
-    pub fn side(&self, f: Field) -> Side {
-        self.sides[f.0]
-    }
-
-    pub fn piece(&self, f: Field) -> Piece {
-        self.pieces[f.0]
-    }
-
-    pub fn new() -> Board {
-        Board::from(&[], Side::White, [true, true, true, true], None, 0, 1)
-    }
-
-    pub fn from(
-        list: &[(Field, Side, Piece)],
-        active: Side,
-        can_castle: [bool; 4],
-        en_passant: Option<Field>,
-        halfmove_clock: u32,
-        full_moves: u32,
-    ) -> Board {
-        let mut sides = [Side::Empty; COUNT];
-        let mut pieces = [Piece::Empty; COUNT];
-        for (idx, side, piece) in list {
-            sides[idx.0] = *side;
-            pieces[idx.0] = *piece;
-        }
-        Board {
-            sides,
-            pieces,
-            active,
-            can_castle,
-            en_passant,
-            halfmove_clock,
-            full_moves,
-        }
-    }
-
-    pub fn initial() -> Board {
-        use crate::piece::Piece::*;
-        use crate::side::Side::*;
-        const LIST: [(Field, Side, Piece); 32] = [
-            (A1, White, Rook),
-            (B1, White, Knight),
-            (C1, White, Bishop),
-            (D1, White, Queen),
-            (E1, White, King),
-            (F1, White, Bishop),
-            (G1, White, Knight),
-            (H1, White, Rook),
-            (A2, White, Pawn),
-            (B2, White, Pawn),
-            (C2, White, Pawn),
-            (D2, White, Pawn),
-            (E2, White, Pawn),
-            (F2, White, Pawn),
-            (G2, White, Pawn),
-            (H2, White, Pawn),
-            (A7, Black, Pawn),
-            (B7, Black, Pawn),
-            (C7, Black, Pawn),
-            (D7, Black, Pawn),
-            (E7, Black, Pawn),
-            (F7, Black, Pawn),
-            (G7, Black, Pawn),
-            (H7, Black, Pawn),
-            (A8, Black, Rook),
-            (B8, Black, Knight),
-            (C8, Black, Bishop),
-            (D8, Black, Queen),
-            (E8, Black, King),
-            (F8, Black, Bishop),
-            (G8, Black, Knight),
-            (H8, Black, Rook),
-        ];
-        Board::from(&LIST, Side::White, [true, true, true, true], None, 0, 1)
     }
 }
