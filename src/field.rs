@@ -30,7 +30,7 @@ impl FromStr for Field {
 }
 
 impl Field {
-    fn new(row: usize, column: usize) -> Self {
+    pub fn new(row: usize, column: usize) -> Self {
         Field(row * 8 + column - 9)
     }
 }
