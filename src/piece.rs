@@ -1,23 +1,80 @@
+use std::convert::TryFrom;
+use std::fmt;
+use std::option::Option;
+use std::str::FromStr;
+
 #[derive(Debug, PartialEq, Eq, Clone, Copy)]
 pub enum ColoredPiece {
     Empty,
     P(Piece, Side),
 }
 
+impl fmt::Display for ColoredPiece {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        match self.symbol() {
+            None => write!(f, ""),
+            Some(s) => write!(f, "{}", s),
+        }
+    }
+}
+
+impl FromStr for ColoredPiece {
+    type Err = &'static str;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        if s.len() != 1 {
+            Err("Line is too long")?
+        }
+        ColoredPiece::try_from(s.chars().next().unwrap())
+    }
+}
+
+impl TryFrom<char> for ColoredPiece {
+    type Error = &'static str;
+
+    fn try_from(ch: char) -> Result<Self, Self::Error> {
+        match ch {
+            'k' => Ok(named::k),
+            'q' => Ok(named::q),
+            'r' => Ok(named::r),
+            'n' => Ok(named::n),
+            'b' => Ok(named::b),
+            'p' => Ok(named::p),
+            'K' => Ok(named::K),
+            'Q' => Ok(named::Q),
+            'R' => Ok(named::R),
+            'N' => Ok(named::N),
+            'B' => Ok(named::B),
+            'P' => Ok(named::P),
+            _ => Err("Cannot convert char to ColoredPiece"),
+        }
+    }
+}
+
 impl ColoredPiece {
+    pub fn symbol(&self) -> Option<char> {
+        match *self {
+            ColoredPiece::Empty => None,
+            named::K => Some('K'),
+            named::Q => Some('Q'),
+            named::R => Some('R'),
+            named::B => Some('B'),
+            named::N => Some('N'),
+            named::P => Some('P'),
+            named::k => Some('k'),
+            named::q => Some('q'),
+            named::r => Some('r'),
+            named::b => Some('b'),
+            named::n => Some('n'),
+            named::p => Some('p'),
+        }
+    }
+
     pub fn has_color(&self, s: Side) -> bool {
         match self {
             ColoredPiece::P(_, c) => *c == s,
             _ => false,
         }
-    }
-
-    pub fn is_white(&self) -> bool {
-        self.has_color(Side::White)
-    }
-
-    pub fn is_black(&self) -> bool {
-        self.has_color(Side::Black)
     }
 }
 

@@ -81,7 +81,7 @@ fn moves_iml(idx: Field, b: &Board, offsets: &[isize], is_sliding: bool, rv: &mu
 mod tests {
     use super::*;
     use crate::board::Board;
-    use crate::piece::named;
+    use crate::piece::ColoredPiece;
     use crate::piece::Side;
     use crate::piece::Side::*;
     use std::collections::HashSet;
@@ -106,21 +106,7 @@ mod tests {
     }
 
     fn piece(s: &str) -> (Field, ColoredPiece) {
-        let piece = match &s[..1] {
-            "K" => named::K,
-            "k" => named::k,
-            "Q" => named::Q,
-            "q" => named::q,
-            "R" => named::R,
-            "r" => named::r,
-            "B" => named::B,
-            "b" => named::b,
-            "N" => named::N,
-            "n" => named::n,
-            "P" => named::P,
-            "p" => named::p,
-            _ => panic!("Unknown piece"),
-        };
+        let piece = s[..1].parse::<ColoredPiece>().unwrap();
         let pos = s[1..].parse::<Field>().unwrap();
         (pos, piece)
     }

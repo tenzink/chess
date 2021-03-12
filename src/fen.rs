@@ -1,6 +1,7 @@
 use crate::board::Board;
 use crate::field::{row, Field};
-use crate::piece::{named, ColoredPiece, Side};
+use crate::piece::{ColoredPiece, Side};
+use std::convert::TryFrom;
 use std::fmt::Write;
 
 fn to_fen(b: &Board) -> String {
@@ -18,22 +19,9 @@ fn to_fen(b: &Board) -> String {
                         write!(&mut rv, "{}", empty_count).expect("Convert number to string is ok");
                         empty_count = 0;
                     }
-                    let sym = match e {
-                        named::K => 'K',
-                        named::Q => 'Q',
-                        named::R => 'R',
-                        named::B => 'B',
-                        named::N => 'N',
-                        named::P => 'P',
-                        named::k => 'k',
-                        named::q => 'q',
-                        named::r => 'r',
-                        named::b => 'b',
-                        named::n => 'n',
-                        named::p => 'p',
-                        _ => panic!("9999"),
-                    };
-                    rv.push(sym);
+                    if let Some(sym) = e.symbol() {
+                        rv.push(sym);
+                    }
                 }
             }
         }
@@ -101,21 +89,7 @@ fn from_fen(s: &str) -> Result<Board, &'static str> {
             column += count;
             continue;
         }
-        let piece = match ch {
-            'k' => named::k,
-            'q' => named::q,
-            'r' => named::r,
-            'n' => named::n,
-            'b' => named::b,
-            'p' => named::p,
-            'K' => named::K,
-            'Q' => named::Q,
-            'R' => named::R,
-            'N' => named::N,
-            'B' => named::B,
-            'P' => named::P,
-            _ => Err("Invalid piece")?,
-        };
+        let piece = ColoredPiece::try_from(ch)?;
         let f = Field::new(row, column);
         b.pieces[f.0] = piece;
         column += 1;

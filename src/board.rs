@@ -98,7 +98,7 @@ mod tests {
         for r in 1..3 {
             for idx in row(r) {
                 assert!(
-                    board.pieces[idx.0].is_white(),
+                    board.pieces[idx.0].has_color(Side::White),
                     "Expect white piece at {}",
                     idx
                 );
@@ -107,7 +107,7 @@ mod tests {
         for r in 7..9 {
             for idx in row(r) {
                 assert!(
-                    board.pieces[idx.0].is_black(),
+                    board.pieces[idx.0].has_color(Side::Black),
                     "Expect black piece at {}",
                     idx
                 );
