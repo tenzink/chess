@@ -1,6 +1,6 @@
 use crate::board::Board;
 use crate::field::{row, Field};
-use crate::piece::{ColoredPiece, Side};
+use crate::piece::ColoredPiece;
 use std::convert::TryFrom;
 use std::fmt::Write;
 
@@ -30,10 +30,7 @@ fn to_fen(b: &Board) -> String {
         }
         rv.push(if r > 1 { '/' } else { ' ' });
     }
-    match b.active {
-        Side::White => rv.push('w'),
-        Side::Black => rv.push('b'),
-    }
+    rv.push(b.active.symbol());
     rv.push(' ');
     if b.can_castle[0] {
         rv.push('K');
@@ -101,11 +98,7 @@ fn from_fen(s: &str) -> Result<Board, &'static str> {
         Err("Not all columns are present")?
     }
 
-    match color {
-        "w" => b.active = Side::White,
-        "b" => b.active = Side::Black,
-        _ => Err("Invalid color")?,
-    }
+    b.active = color.parse()?;
 
     b.can_castle[0] = castle.find('K').is_some();
     b.can_castle[1] = castle.find('Q').is_some();
@@ -127,6 +120,7 @@ fn from_fen(s: &str) -> Result<Board, &'static str> {
 mod tests {
     use super::*;
     use crate::field::named::*;
+    use crate::piece::Side;
 
     #[test]
     fn from_string1() {
