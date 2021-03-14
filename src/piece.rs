@@ -117,3 +117,30 @@ pub enum Side {
     White,
     Black,
 }
+
+impl Side {
+    pub fn symbol(&self) -> char {
+        match *self {
+            Side::White => 'w',
+            Side::Black => 'b',
+        }
+    }
+}
+
+impl fmt::Display for Side {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "{}", self.symbol())
+    }
+}
+
+impl FromStr for Side {
+    type Err = &'static str;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        match s {
+            "w" => Ok(Side::White),
+            "b" => Ok(Side::Black),
+            _ => Err("Invalid color code"),
+        }
+    }
+}
