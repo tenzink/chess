@@ -102,7 +102,7 @@ pub mod named {
     pub const p: ColoredPiece = ColoredPiece::P(Piece::Pawn, Side::Black);
 }
 
-#[derive(Debug, PartialEq, Eq, Clone, Copy)]
+#[derive(Debug, PartialEq, Eq, Clone, Copy, PartialOrd, Ord, Hash)]
 pub enum Piece {
     King,
     Queen,
@@ -110,6 +110,38 @@ pub enum Piece {
     Bishop,
     Knight,
     Pawn,
+}
+
+impl fmt::Display for Piece {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        match self {
+            Piece::King => write!(f, "K"),
+            Piece::Queen => write!(f, "Q"),
+            Piece::Rook => write!(f, "R"),
+            Piece::Bishop => write!(f, "B"),
+            Piece::Knight => write!(f, "N"),
+            Piece::Pawn => write!(f, "P"),
+        }
+    }
+}
+
+impl FromStr for Piece {
+    type Err = &'static str;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        if s.len() != 1 {
+            Err("Line is too long")?
+        }
+        match s {
+            "K" => Ok(Piece::King),
+            "Q" => Ok(Piece::Queen),
+            "R" => Ok(Piece::Rook),
+            "B" => Ok(Piece::Bishop),
+            "N" => Ok(Piece::Knight),
+            "P" => Ok(Piece::Pawn),
+            _ => Err("Unknown piece"),
+        }
+    }
 }
 
 #[derive(Debug, PartialEq, Eq, Clone, Copy)]

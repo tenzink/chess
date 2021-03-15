@@ -1,7 +1,7 @@
 use crate::board::Board;
 use crate::field::{fields, Field};
 use crate::mv::{capture, mv, Move};
-use crate::piece::{ColoredPiece, Piece};
+use crate::piece::{ColoredPiece, Piece, Side};
 
 pub fn generate(b: &Board) -> Vec<Move> {
     let mut rv: Vec<Move> = Vec::new();
@@ -10,14 +10,41 @@ pub fn generate(b: &Board) -> Vec<Move> {
             if s != b.active {
                 continue;
             }
-            let mut gen_moves = |moves, slide| moves_iml(idx, b, moves, slide, &mut rv);
+            let mut piece_moves = |moves, slide| gen_piece_moves(idx, b, moves, slide, &mut rv);
             match piece {
-                Piece::King => gen_moves(&[-11, -10, -9, -1, 1, 9, 10, 11], false),
-                Piece::Queen => gen_moves(&[-11, -10, -9, -1, 1, 9, 10, 11], true),
-                Piece::Rook => gen_moves(&[-10, -1, 1, 10], true),
-                Piece::Bishop => gen_moves(&[-11, -9, 9, 11], true),
-                Piece::Knight => gen_moves(&[-21, -19, -12, -8, 8, 12, 19, 21], false),
-                Piece::Pawn => continue,
+                Piece::King => piece_moves(&[-11, -10, -9, -1, 1, 9, 10, 11], false),
+                Piece::Queen => piece_moves(&[-11, -10, -9, -1, 1, 9, 10, 11], true),
+                Piece::Rook => piece_moves(&[-10, -1, 1, 10], true),
+                Piece::Bishop => piece_moves(&[-11, -9, 9, 11], true),
+                Piece::Knight => piece_moves(&[-21, -19, -12, -8, 8, 12, 19, 21], false),
+                Piece::Pawn => {
+                    let mult = match b.active {
+                        Side::White => 1,
+                        Side::Black => -1,
+                    };
+                    let (initial, promotes) = match b.active {
+                        Side::White => (idx.row() == 2, idx.row() == 7),
+                        Side::Black => (idx.row() == 7, idx.row() == 2),
+                    };
+                    let captures = &[9 * mult, 11 * mult];
+                    let promotes = if promotes {
+                        vec![
+                            Some(Piece::Queen),
+                            Some(Piece::Rook),
+                            Some(Piece::Bishop),
+                            Some(Piece::Knight),
+                        ]
+                    } else {
+                        vec![None]
+                    };
+                    if initial {
+                        let moves = &[10 * mult, 10 * mult];
+                        gen_pawn_moves(idx, b, moves, captures, &promotes, &mut rv);
+                    } else {
+                        let moves = &[10 * mult];
+                        gen_pawn_moves(idx, b, moves, captures, &promotes, &mut rv);
+                    }
+                }
             }
         }
     }
@@ -54,22 +81,73 @@ const MAILBOX120_INDICES: [isize; 64] = [
     81, 82, 83, 84, 85, 86, 87, 88,
     91, 92, 93, 94, 95, 96, 97, 98];
 
-fn moves_iml(idx: Field, b: &Board, offsets: &[isize], is_sliding: bool, rv: &mut Vec<Move>) {
-    for off in offsets {
+fn move64(idx64: usize, offset120: isize) -> Option<usize> {
+    let rv = MAILBOX_INDICES[(MAILBOX120_INDICES[idx64] + offset120) as usize];
+    if rv == MX {
+        None
+    } else {
+        Some(rv)
+    }
+}
+
+fn gen_pawn_moves(
+    idx: Field,
+    b: &Board,
+    move_offsets: &[isize],
+    capture_offsets: &[isize],
+    promotes: &[Option<Piece>],
+    rv: &mut Vec<Move>,
+) {
+    let mut n = idx.0;
+    for offset in move_offsets {
+        n = match move64(n, *offset) {
+            Some(rv) => rv,
+            None => continue,
+        };
+        let f = Field::from(n);
+        if ColoredPiece::Empty != b.pieces[f.0] {
+            break;
+        }
+        for p in promotes {
+            rv.push(mv(idx, f, *p));
+        }
+    }
+    let n = idx.0;
+    for offset in capture_offsets {
+        let f = match move64(n, *offset) {
+            Some(rv) => Field::from(rv),
+            None => continue,
+        };
+        if b.en_passant == Some(f) {
+            for p in promotes {
+                rv.push(capture(idx, f, *p));
+            }
+        } else if let ColoredPiece::P(_, c) = b.pieces[f.0] {
+            if c != b.active {
+                for p in promotes {
+                    rv.push(capture(idx, f, *p));
+                }
+            }
+        }
+    }
+}
+
+fn gen_piece_moves(idx: Field, b: &Board, offsets: &[isize], is_sliding: bool, rv: &mut Vec<Move>) {
+    for offset in offsets {
         let mut n = idx.0;
         loop {
-            n = MAILBOX_INDICES[(MAILBOX120_INDICES[n] + off) as usize];
-            if n == MX {
-                break;
-            }
+            n = match move64(n, *offset) {
+                Some(rv) => rv,
+                None => break,
+            };
             let f = Field::from(n);
             if let ColoredPiece::P(_, c) = b.pieces[f.0] {
                 if c != b.active {
-                    rv.push(capture(idx, f));
+                    rv.push(capture(idx, f, None));
                 }
                 break;
             }
-            rv.push(mv(idx, f));
+            rv.push(mv(idx, f, None));
             if !is_sliding {
                 break;
             }
@@ -81,6 +159,7 @@ fn moves_iml(idx: Field, b: &Board, offsets: &[isize], is_sliding: bool, rv: &mu
 mod tests {
     use super::*;
     use crate::board::Board;
+    use crate::field::named;
     use crate::piece::ColoredPiece;
     use crate::piece::Side;
     use crate::piece::Side::*;
@@ -151,21 +230,13 @@ mod tests {
             [true, true, true, true],
             None,
         );
-    }
-
-    #[test]
-    fn king2() {
         test_moves(
             White,
             &["Ka1", "Pa2", "pb2"],
-            &["a1b1", "a1b2x"],
+            &["a1b1", "a1xb2", "a2a3", "a2a4"],
             [true, true, true, true],
             None,
         );
-    }
-
-    #[test]
-    fn king3() {
         test_moves(
             White,
             &["Ke4"],
@@ -228,10 +299,6 @@ mod tests {
             [true, true, true, true],
             None,
         );
-    }
-
-    #[test]
-    fn knight2() {
         test_moves(
             White,
             &["Nd4"],
@@ -241,5 +308,81 @@ mod tests {
             [true, true, true, true],
             None,
         );
+    }
+
+    #[test]
+    fn pawn() {
+        test_moves(
+            White,
+            &["Pa7"],
+            &["a7a8=Q", "a7a8=R", "a7a8=B", "a7a8=N"],
+            [true, true, true, true],
+            None,
+        );
+        test_moves(
+            Black,
+            &["pa2"],
+            &["a2a1=Q", "a2a1=R", "a2a1=B", "a2a1=N"],
+            [true, true, true, true],
+            None,
+        );
+        test_moves(
+            White,
+            &["Pa7", "ra8", "bb8"],
+            &["a7xb8=Q", "a7xb8=R", "a7xb8=B", "a7xb8=N"],
+            [true, true, true, true],
+            None,
+        );
+        test_moves(
+            Black,
+            &["pa2", "Ra1", "Bb1"],
+            &["a2xb1=Q", "a2xb1=R", "a2xb1=B", "a2xb1=N"],
+            [true, true, true, true],
+            None,
+        );
+        test_moves(
+            White,
+            &["Pe2"],
+            &["e2e3", "e2e4"],
+            [true, true, true, true],
+            None,
+        );
+        test_moves(
+            Black,
+            &["pe7"],
+            &["e7e6", "e7e5"],
+            [true, true, true, true],
+            None,
+        );
+        test_moves(
+            White,
+            &["Pd2", "pc3", "pe3"],
+            &["d2d3", "d2d4", "d2xc3", "d2xe3"],
+            [true, true, true, true],
+            None,
+        );
+        test_moves(
+            Black,
+            &["pd7", "Pc6", "Pe6"],
+            &["d7d6", "d7d5", "d7xc6", "d7xe6"],
+            [true, true, true, true],
+            None,
+        );
+        test_moves(
+            White,
+            &["Pd6", "pe6"],
+            &["d6d7", "d6xe7"],
+            [true, true, true, true],
+            Some(named::E7),
+        );
+        test_moves(
+            Black,
+            &["pd4", "Pe4"],
+            &["d4d3", "d4xe3"],
+            [true, true, true, true],
+            Some(named::E3),
+        );
+        test_moves(White, &["Pd4"], &["d4d5"], [true, true, true, true], None);
+        test_moves(Black, &["pd4"], &["d4d3"], [true, true, true, true], None);
     }
 }
