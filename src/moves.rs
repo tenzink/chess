@@ -81,6 +81,15 @@ const MAILBOX120_INDICES: [isize; 64] = [
     81, 82, 83, 84, 85, 86, 87, 88,
     91, 92, 93, 94, 95, 96, 97, 98];
 
+fn move64(idx64: usize, offset120: isize) -> Option<usize> {
+    let rv = MAILBOX_INDICES[(MAILBOX120_INDICES[idx64] + offset120) as usize];
+    if rv == MX {
+        None
+    } else {
+        Some(rv)
+    }
+}
+
 fn gen_pawn_moves(
     idx: Field,
     b: &Board,
@@ -91,10 +100,10 @@ fn gen_pawn_moves(
 ) {
     let mut n = idx.0;
     for offset in move_offsets {
-        n = MAILBOX_INDICES[(MAILBOX120_INDICES[n] + offset) as usize];
-        if n == MX {
-            break;
-        }
+        n = match move64(n, *offset) {
+            Some(rv) => rv,
+            None => continue,
+        };
         let f = Field::from(n);
         if ColoredPiece::Empty != b.pieces[f.0] {
             break;
@@ -105,11 +114,10 @@ fn gen_pawn_moves(
     }
     let n = idx.0;
     for offset in capture_offsets {
-        let n = MAILBOX_INDICES[(MAILBOX120_INDICES[n] + offset) as usize];
-        if n == MX {
-            continue;
-        }
-        let f = Field::from(n);
+        let f = match move64(n, *offset) {
+            Some(rv) => Field::from(rv),
+            None => continue,
+        };
         if b.en_passant == Some(f) {
             for p in promotes {
                 rv.push(capture(idx, f, *p));
@@ -125,13 +133,13 @@ fn gen_pawn_moves(
 }
 
 fn gen_piece_moves(idx: Field, b: &Board, offsets: &[isize], is_sliding: bool, rv: &mut Vec<Move>) {
-    for off in offsets {
+    for offset in offsets {
         let mut n = idx.0;
         loop {
-            n = MAILBOX_INDICES[(MAILBOX120_INDICES[n] + off) as usize];
-            if n == MX {
-                break;
-            }
+            n = match move64(n, *offset) {
+                Some(rv) => rv,
+                None => break,
+            };
             let f = Field::from(n);
             if let ColoredPiece::P(_, c) = b.pieces[f.0] {
                 if c != b.active {
