@@ -33,6 +33,10 @@ impl Field {
     pub fn new(row: usize, column: usize) -> Self {
         Field(row * 8 + column - 9)
     }
+
+    pub fn row(&self) -> usize {
+        1 + (self.0 / 8)
+    }
 }
 
 pub mod named {
