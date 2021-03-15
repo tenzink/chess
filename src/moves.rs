@@ -3,7 +3,7 @@ use crate::field::{fields, Field};
 use crate::mv::{capture, mv, Move};
 use crate::piece::{ColoredPiece, Piece};
 
-pub fn moves(b: &Board) -> Vec<Move> {
+pub fn generate(b: &Board) -> Vec<Move> {
     let mut rv: Vec<Move> = Vec::new();
     for idx in fields() {
         if let ColoredPiece::P(piece, s) = b.pieces[idx.0] {
@@ -100,8 +100,8 @@ mod tests {
     }
     #[test]
     fn empty() {
-        let b = Board::new();
-        let mv = moves(&b);
+        let b = Board::empty();
+        let mv = generate(&b);
         assert_eq!(mv.len(), 0);
     }
 
@@ -127,8 +127,8 @@ mod tests {
         for pieces_str in pieces_str {
             pieces.push(piece(pieces_str));
         }
-        let b = Board::from(&pieces, side, can_castle, en_passant, 0, 1);
-        let moves = moves(&b);
+        let b = Board::new(&pieces, side, can_castle, en_passant, 0, 1);
+        let moves = generate(&b);
         let moves: HashSet<_> = moves.iter().cloned().collect();
         let expected = expected_moves;
         let redundant: Vec<_> = moves.difference(&expected).collect();

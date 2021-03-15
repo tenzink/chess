@@ -12,11 +12,11 @@ pub struct Board {
 }
 
 impl Board {
-    pub fn new() -> Board {
-        Board::from(&[], Side::White, [true, true, true, true], None, 0, 1)
+    pub fn empty() -> Board {
+        Board::new(&[], Side::White, [true, true, true, true], None, 0, 1)
     }
 
-    pub fn from(
+    pub fn new(
         list: &[(Field, ColoredPiece)],
         active: Side,
         can_castle: [bool; 4],
@@ -74,7 +74,7 @@ impl Board {
             (G8, named::n),
             (H8, named::r),
         ];
-        Board::from(&LIST, Side::White, [true, true, true, true], None, 0, 1)
+        Board::new(&LIST, Side::White, [true, true, true, true], None, 0, 1)
     }
 }
 
@@ -85,8 +85,8 @@ mod tests {
     use crate::piece::named;
 
     #[test]
-    fn new() {
-        let board = Board::new();
+    fn empty() {
+        let board = Board::empty();
         for i in fields() {
             assert_eq!(board.pieces[i.0], ColoredPiece::Empty);
         }
@@ -148,8 +148,8 @@ mod tests {
     }
 
     #[test]
-    fn from() {
-        let board = Board::from(
+    fn new() {
+        let board = Board::new(
             &[(A1, named::R)],
             Side::White,
             [true, true, true, true],
@@ -163,7 +163,7 @@ mod tests {
 
     #[test]
     fn from2() {
-        let board = Board::from(
+        let board = Board::new(
             &[(H7, named::P), (H8, named::k)],
             Side::White,
             [true, true, true, true],

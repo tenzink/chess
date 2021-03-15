@@ -58,7 +58,7 @@ fn to_fen(b: &Board) -> String {
 }
 
 fn from_fen(s: &str) -> Result<Board, &'static str> {
-    let mut b = Board::new();
+    let mut b = Board::empty();
     let data: Vec<&str> = s.split(' ').collect();
     if data.len() != 6 {
         Err("Fen should contain 6 fields")?;
