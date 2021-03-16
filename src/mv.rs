@@ -14,6 +14,8 @@ pub struct MoveData {
 pub enum Move {
     Capture(MoveData),
     Move(MoveData),
+    KingCastle,
+    QueenCastle,
 }
 
 pub fn mv(from: Field, to: Field, promotion: Option<Piece>) -> Move {
@@ -41,6 +43,8 @@ impl fmt::Display for Move {
         match self {
             Move::Capture(m) => write!(f, "{}x{}{}", m.from, m.to, capture_str(m.promotion)),
             Move::Move(m) => write!(f, "{}{}{}", m.from, m.to, capture_str(m.promotion)),
+            Move::KingCastle => write!(f, "O-O"),
+            Move::QueenCastle => write!(f, "O-O-O"),
         }
     }
 }
@@ -49,7 +53,11 @@ impl FromStr for Move {
     type Err = ();
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        if s.len() == 4 {
+        if s == "O-O" {
+            Ok(Move::KingCastle)
+        } else if s == "O-O-O" {
+            Ok(Move::QueenCastle)
+        } else if s.len() == 4 {
             let from = s.get(0..2).ok_or_else(|| ())?.parse::<Field>()?;
             let to = s.get(2..4).ok_or_else(|| ())?.parse::<Field>()?;
             Ok(mv(from, to, None))
@@ -96,6 +104,8 @@ mod tests {
         assert_eq!(capture(E2, E4, None).to_string(), "e2xe4");
         assert_eq!(mv(A7, A8, Some(Piece::Queen)).to_string(), "a7a8=Q");
         assert_eq!(capture(C7, B8, Some(Piece::Knight)).to_string(), "c7xb8=N");
+        assert_eq!(Move::KingCastle.to_string(), "O-O");
+        assert_eq!(Move::QueenCastle.to_string(), "O-O-O");
     }
 
     #[test]
@@ -108,6 +118,8 @@ mod tests {
             Ok(capture(C7, B8, Some(Piece::Rook))),
             "c7xb8=R".parse::<Move>()
         );
+        assert_eq!(Ok(Move::KingCastle), "O-O".parse::<Move>());
+        assert_eq!(Ok(Move::QueenCastle), "O-O-O".parse::<Move>());
         assert!("e2e4uv".parse::<Move>().is_err());
         assert!("e2e4u".parse::<Move>().is_err());
         assert!("e2e".parse::<Move>().is_err());
