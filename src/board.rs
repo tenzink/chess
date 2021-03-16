@@ -159,10 +159,7 @@ mod tests {
         );
         assert_eq!(board.pieces[A1.0], named::R);
         assert_eq!(board.pieces[A2.0], ColoredPiece::Empty);
-    }
 
-    #[test]
-    fn from2() {
         let board = Board::new(
             &[(H7, named::P), (H8, named::k)],
             Side::White,

@@ -3,6 +3,6 @@
 mod board;
 mod fen;
 mod field;
-mod moves;
+mod move_generator;
 mod mv;
 mod piece;
