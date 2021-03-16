@@ -48,6 +48,40 @@ pub fn generate(b: &Board) -> Vec<Move> {
             }
         }
     }
+    let can_castle = |king_from: Field,
+                      king_to: Field,
+                      rook_from: Field,
+                      rook_to: Field,
+                      other: Option<Field>|
+     -> bool {
+        b.pieces[king_from.0] == ColoredPiece::P(Piece::King, b.active)
+            && b.pieces[king_to.0] == ColoredPiece::Empty
+            && b.pieces[rook_from.0] == ColoredPiece::P(Piece::Rook, b.active)
+            && b.pieces[rook_to.0] == ColoredPiece::Empty
+            && match other {
+                None => true,
+                Some(f) => b.pieces[f.0] == ColoredPiece::Empty,
+            }
+    };
+    use crate::field::named::*;
+    match b.active {
+        Side::White => {
+            if b.can_castle[0] && can_castle(E1, G1, H1, F1, None) {
+                rv.push(Move::KingCastle);
+            }
+            if b.can_castle[1] && can_castle(E1, C1, A1, D1, Some(B1)) {
+                rv.push(Move::QueenCastle);
+            }
+        }
+        Side::Black => {
+            if b.can_castle[2] && can_castle(E8, G8, H8, F8, None) {
+                rv.push(Move::KingCastle);
+            }
+            if b.can_castle[3] && can_castle(E8, C8, A8, D8, Some(B8)) {
+                rv.push(Move::QueenCastle);
+            }
+        }
+    }
     rv
 }
 
@@ -384,5 +418,29 @@ mod tests {
         );
         test_moves(White, &["Pd4"], &["d4d5"], [true, true, true, true], None);
         test_moves(Black, &["pd4"], &["d4d3"], [true, true, true, true], None);
+    }
+
+    #[test]
+    fn castle() {
+        test_moves(
+            White,
+            &["Ke1", "Rh1"],
+            &[
+                "O-O", "e1d1", "e1d2", "e1e2", "e1f1", "e1f2", "h1f1", "h1g1", "h1h2", "h1h3",
+                "h1h4", "h1h5", "h1h6", "h1h7", "h1h8",
+            ],
+            [true, true, true, true],
+            None,
+        );
+        test_moves(
+            White,
+            &["Ke1", "Rh1"],
+            &[
+                "e1d1", "e1d2", "e1e2", "e1f1", "e1f2", "h1f1", "h1g1", "h1h2", "h1h3", "h1h4",
+                "h1h5", "h1h6", "h1h7", "h1h8",
+            ],
+            [false, true, true, true],
+            None,
+        );
     }
 }
